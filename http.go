@@ -36,7 +36,9 @@ func metaCall(metadataURL string) (res *metadataIAMResponse, err error) {
 			Reason: "failed to create HTTP request",
 		}
 	}
-	defer resp.Body.Close()
+	defer func() {
+		_ = resp.Body.Close()
+	}()
 
 	switch resp.StatusCode {
 	case http.StatusOK:

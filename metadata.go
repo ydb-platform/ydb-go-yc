@@ -27,7 +27,7 @@ type instanceServiceAccountCredentials struct {
 	caller string
 }
 
-// Returns cached token if it is valid. Otherwise, will try to renew.
+// Token returns cached token if it is valid. Otherwise, will try to renew.
 func (m *instanceServiceAccountCredentials) Token(ctx context.Context) (token string, err error) {
 	for {
 		select {
@@ -113,7 +113,7 @@ func (m *instanceServiceAccountCredentials) refreshOnce() {
 	m.token, m.expiry, m.err = tok.Token, now.Add(tok.ExpiresIn), nil
 }
 
-// Credentials provider that uses instance metadata url to obtain token for service account attached to instance.
+// InstanceServiceAccountURL makes credentials provider that uses instance metadata url to obtain token for service account attached to instance.
 // Cancelling context will lead to credentials refresh halt.
 // It should be used during application stop or credentials recreation.
 func InstanceServiceAccountURL(ctx context.Context, url string) ydb.Credentials {
@@ -130,7 +130,7 @@ func InstanceServiceAccountURL(ctx context.Context, url string) ydb.Credentials 
 	return credentials
 }
 
-// Credentials provider that uses instance metadata with default url to obtain token for service account attached to instance.
+// InstanceServiceAccount makes credentials provider that uses instance metadata with default url to obtain token for service account attached to instance.
 // Cancelling context will lead to credentials refresh halt.
 // It should be used during application stop or credentials recreation.
 func InstanceServiceAccount(ctx context.Context) ydb.Credentials {

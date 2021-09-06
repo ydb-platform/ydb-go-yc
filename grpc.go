@@ -26,7 +26,9 @@ func (t *grpcTransport) CreateToken(ctx context.Context, jwt string) (
 	if err != nil {
 		return
 	}
-	defer conn.Close()
+	defer func() {
+		_ = conn.Close()
+	}()
 
 	client := v1.NewIamTokenServiceClient(conn)
 	res, err := client.Create(ctx, &v1.CreateIamTokenRequest{
