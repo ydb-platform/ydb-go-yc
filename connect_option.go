@@ -8,7 +8,7 @@ import (
 	"github.com/YandexDatabase/ydb-go-sdk/v3/connect"
 )
 
-func WithMetadataCredentials(ctx context.Context) connect.ConnectOption {
+func WithMetadataCredentials(ctx context.Context) connect.Option {
 	return connect.WithCredentials(
 		InstanceServiceAccount(
 			ydb.WithCredentialsSourceInfo(ctx, "connect.WithMetadataCredentials(ctx)"),
@@ -16,7 +16,7 @@ func WithMetadataCredentials(ctx context.Context) connect.ConnectOption {
 	)
 }
 
-func WithServiceAccountKeyFileCredentials(serviceAccountKeyFile string) connect.ConnectOption {
+func WithServiceAccountKeyFileCredentials(serviceAccountKeyFile string) connect.Option {
 	return connect.WithCreateCredentialsFunc(func() (ydb.Credentials, error) {
 		credentials, err := NewClient(
 			WithServiceFile(serviceAccountKeyFile),

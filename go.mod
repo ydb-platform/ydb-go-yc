@@ -3,7 +3,7 @@ module github.com/YandexDatabase/ydb-go-sdk-auth-iam
 go 1.16
 
 require (
-	github.com/YandexDatabase/ydb-go-sdk/v3 v3.0.0-20210906093613-8fd9b68fea38
+	github.com/YandexDatabase/ydb-go-sdk/v3 v3.0.0-20210906093949-3631f76736a6
 	github.com/golang-jwt/jwt v3.2.2+incompatible
 	github.com/yandex-cloud/go-genproto v0.0.0-20210824140926-1bca7bc0c005
 	golang.org/x/net v0.0.0-20210903162142-ad29c8ab022f // indirect
