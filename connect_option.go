@@ -17,7 +17,7 @@ func WithMetadataCredentials(ctx context.Context) connect.Option {
 }
 
 func WithServiceAccountKeyFileCredentials(serviceAccountKeyFile string) connect.Option {
-	return connect.WithCreateCredentialsFunc(func() (ydb.Credentials, error) {
+	return connect.WithCreateCredentialsFunc(func(ctx context.Context) (ydb.Credentials, error) {
 		credentials, err := NewClient(
 			WithServiceFile(serviceAccountKeyFile),
 			WithDefaultEndpoint(),

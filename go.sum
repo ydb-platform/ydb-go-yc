@@ -12,6 +12,8 @@ github.com/YandexDatabase/ydb-go-sdk/v3 v3.0.0-20210906093613-8fd9b68fea38 h1:lv
 github.com/YandexDatabase/ydb-go-sdk/v3 v3.0.0-20210906093613-8fd9b68fea38/go.mod h1:+zhkgm9OJ0tVMMzm3jI7IMjXBfgPpH4ux+jAfbgYnzI=
 github.com/YandexDatabase/ydb-go-sdk/v3 v3.0.0-20210906093949-3631f76736a6 h1:YOFBWTEWV+WtbRAjkDZ7wMbvZrr7DaZelr3oymUhN/w=
 github.com/YandexDatabase/ydb-go-sdk/v3 v3.0.0-20210906093949-3631f76736a6/go.mod h1:+zhkgm9OJ0tVMMzm3jI7IMjXBfgPpH4ux+jAfbgYnzI=
+github.com/YandexDatabase/ydb-go-sdk/v3 v3.0.0-20210906094909-21c16693c4c8 h1:nfu7QmBYBjb6Mh0l3+xCvJV5W1nxB9sWWIKDHPr3Hq0=
+github.com/YandexDatabase/ydb-go-sdk/v3 v3.0.0-20210906094909-21c16693c4c8/go.mod h1:+zhkgm9OJ0tVMMzm3jI7IMjXBfgPpH4ux+jAfbgYnzI=
 github.com/antihax/optional v1.0.0/go.mod h1:uupD/76wgC+ih3iEmQUL+0Ugr19nfwCT1kdvxnR2qWY=
 github.com/census-instrumentation/opencensus-proto v0.2.1/go.mod h1:f6KPmirojxKA12rnyqOA5BBL4O983OfeGPqjHWSTneU=
 github.com/cespare/xxhash v1.1.0/go.mod h1:XrSqR1VqqWfGrhpAt58auRo0WTKS1nRRg3ghfAqPWnc=
