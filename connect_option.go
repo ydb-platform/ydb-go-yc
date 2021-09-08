@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/YandexDatabase/ydb-go-sdk/v3"
-	"github.com/YandexDatabase/ydb-go-sdk/v3/connect"
+	"github.com/ydb-platform/ydb-go-sdk/v3"
+	"github.com/ydb-platform/ydb-go-sdk/v3/connect"
 )
 
 func WithMetadataCredentials(ctx context.Context) connect.Option {
