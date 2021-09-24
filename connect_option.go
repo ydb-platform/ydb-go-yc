@@ -5,16 +5,16 @@ import (
 	"crypto/x509"
 	"fmt"
 	"github.com/ydb-platform/ydb-go-sdk/v3/ydbsql"
+	auth2 "github.com/ydb-platform/ydb-go-yc/internal/auth"
+	"github.com/ydb-platform/ydb-go-yc/internal/pem"
 
 	"github.com/ydb-platform/ydb-go-sdk/v3"
 	"github.com/ydb-platform/ydb-go-sdk/v3/credentials"
-
-	"github.com/ydb-platform/ydb-go-yc/auth"
 )
 
 func WithMetadataCredentials(ctx context.Context) ydb.Option {
 	return ydb.WithCredentials(
-		auth.InstanceServiceAccount(
+		auth2.InstanceServiceAccount(
 			credentials.WithCredentialsSourceInfo(ctx, "yc.WithMetadataCredentials(ctx)"),
 		),
 	)
@@ -22,11 +22,11 @@ func WithMetadataCredentials(ctx context.Context) ydb.Option {
 
 func WithServiceAccountKeyFileCredentials(serviceAccountKeyFile string) ydb.Option {
 	return ydb.WithCreateCredentialsFunc(func(ctx context.Context) (credentials.Credentials, error) {
-		credentials, err := auth.NewClient(
-			auth.WithServiceFile(serviceAccountKeyFile),
-			auth.WithDefaultEndpoint(),
-			auth.WithSystemCertPool(),
-			auth.WithSourceInfo("yc.WithServiceAccountKeyFileCredentials(\""+serviceAccountKeyFile+"\")"),
+		credentials, err := auth2.NewClient(
+			auth2.WithServiceFile(serviceAccountKeyFile),
+			auth2.WithDefaultEndpoint(),
+			auth2.WithSystemCertPool(),
+			auth2.WithSourceInfo("yc.WithServiceAccountKeyFileCredentials(\""+serviceAccountKeyFile+"\")"),
 		)
 		if err != nil {
 			return nil, fmt.Errorf("configure credentials error: %w", err)
@@ -40,12 +40,12 @@ func WithInternalCA() ydb.Option {
 	if err != nil {
 		panic(err)
 	}
-	if !certPool.AppendCertsFromPEM(ycPEM) {
+	if !certPool.AppendCertsFromPEM(pem.YcPEM) {
 		panic("cannot append yandex-cloud PEM")
 	}
 	return ydb.WithCertificates(certPool)
 }
 
 func WithYdbSqlInternalCA() ydbsql.ConnectorOption {
-	return ydbsql.WithCertificatesFromPem(ycPEM)
+	return ydbsql.WithCertificatesFromPem(pem.YcPEM)
 }
