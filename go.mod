@@ -5,7 +5,7 @@ go 1.16
 require (
 	github.com/golang-jwt/jwt v3.2.2+incompatible
 	github.com/yandex-cloud/go-genproto v0.0.0-20210824140926-1bca7bc0c005
-	github.com/ydb-platform/ydb-go-sdk/v3 v3.0.0-20210908134414-3da105121e95
+	github.com/ydb-platform/ydb-go-sdk/v3 v3.0.0-20210924064430-eba76bae10c9
 	golang.org/x/net v0.0.0-20210903162142-ad29c8ab022f // indirect
 	golang.org/x/sys v0.0.0-20210903071746-97244b99971b // indirect
 	golang.org/x/text v0.3.7 // indirect

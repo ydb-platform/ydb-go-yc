@@ -5,10 +5,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ydb-platform/ydb-go-sdk/v3"
+	"github.com/ydb-platform/ydb-go-sdk/v3/credentials"
 )
 
-var _ ydb.Credentials = &instanceServiceAccountCredentials{}
+var _ credentials.Credentials = &instanceServiceAccountCredentials{}
 
 const metadataURL = "http://169.254.169.254/computeMetadata/v1/instance/service-accounts/default/token"
 
@@ -116,9 +116,9 @@ func (m *instanceServiceAccountCredentials) refreshOnce() {
 // InstanceServiceAccountURL makes credentials provider that uses instance metadata url to obtain token for service account attached to instance.
 // Cancelling context will lead to credentials refresh halt.
 // It should be used during application stop or credentials recreation.
-func InstanceServiceAccountURL(ctx context.Context, url string) ydb.Credentials {
-	caller, _ := ydb.ContextCredentialsSourceInfo(ctx)
-	credentials := &instanceServiceAccountCredentials{
+func InstanceServiceAccountURL(ctx context.Context, url string) credentials.Credentials {
+	caller, _ := credentials.ContextCredentialsSourceInfo(ctx)
+	creds := &instanceServiceAccountCredentials{
 		metadataURL: url,
 		mu:          &sync.RWMutex{},
 		ctx:         ctx,
@@ -126,13 +126,13 @@ func InstanceServiceAccountURL(ctx context.Context, url string) ydb.Credentials 
 		caller:      caller,
 	}
 	// Start refresh loop.
-	go credentials.refreshLoop()
-	return credentials
+	go creds.refreshLoop()
+	return creds
 }
 
 // InstanceServiceAccount makes credentials provider that uses instance metadata with default url to obtain token for service account attached to instance.
 // Cancelling context will lead to credentials refresh halt.
 // It should be used during application stop or credentials recreation.
-func InstanceServiceAccount(ctx context.Context) ydb.Credentials {
+func InstanceServiceAccount(ctx context.Context) credentials.Credentials {
 	return InstanceServiceAccountURL(ctx, metadataURL)
 }

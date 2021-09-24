@@ -16,9 +16,8 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt"
-
-	"github.com/ydb-platform/ydb-go-sdk/v3"
-	"github.com/ydb-platform/ydb-go-sdk/v3/timeutil"
+	"github.com/ydb-platform/ydb-go-sdk/v3/credentials"
+	"github.com/ydb-platform/ydb-go-sdk/v3/testutil/timeutil"
 )
 
 // Default client parameters.
@@ -91,7 +90,7 @@ func WithCertPool(certPool *x509.CertPool) ClientOption {
 func WithCertPoolFile(caFile string) ClientOption {
 	return func(c *client) error {
 		cp := x509.NewCertPool()
-		if err := ydb.AppendCertsFromFile(cp, caFile); err != nil {
+		if err := credentials.AppendCertsFromFile(cp, caFile); err != nil {
 			return err
 		}
 		c.CertPool = cp
@@ -213,7 +212,7 @@ func WithServiceFile(path string) ClientOption {
 // NewClient creates IAM (jwt) authorized client from provided ClientOptions list.
 //
 // To create successfully at least one of endpoint options must be provided.
-func NewClient(opts ...ClientOption) (ydb.Credentials, error) {
+func NewClient(opts ...ClientOption) (credentials.Credentials, error) {
 	c := &client{}
 	for _, opt := range opts {
 		err := opt(c)

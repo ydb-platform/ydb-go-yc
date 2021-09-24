@@ -8,8 +8,7 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt"
-
-	"github.com/ydb-platform/ydb-go-sdk/v3/timeutil"
+	"github.com/ydb-platform/ydb-go-sdk/v3/testutil/timeutil"
 )
 
 type TransportFunc func(context.Context, string) (string, time.Time, error)

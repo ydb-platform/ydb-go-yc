@@ -3,21 +3,21 @@ package iam
 import (
 	"context"
 	"fmt"
+	"github.com/ydb-platform/ydb-go-sdk/v3/credentials"
 
 	"github.com/ydb-platform/ydb-go-sdk/v3"
-	"github.com/ydb-platform/ydb-go-sdk/v3/connect"
 )
 
-func WithMetadataCredentials(ctx context.Context) connect.Option {
-	return connect.WithCredentials(
+func WithMetadataCredentials(ctx context.Context) ydb.Option {
+	return ydb.WithCredentials(
 		InstanceServiceAccount(
-			ydb.WithCredentialsSourceInfo(ctx, "connect.WithMetadataCredentials(ctx)"),
+			credentials.WithCredentialsSourceInfo(ctx, "connect.WithMetadataCredentials(ctx)"),
 		),
 	)
 }
 
-func WithServiceAccountKeyFileCredentials(serviceAccountKeyFile string) connect.Option {
-	return connect.WithCreateCredentialsFunc(func(ctx context.Context) (ydb.Credentials, error) {
+func WithServiceAccountKeyFileCredentials(serviceAccountKeyFile string) ydb.Option {
+	return ydb.WithCreateCredentialsFunc(func(ctx context.Context) (credentials.Credentials, error) {
 		credentials, err := NewClient(
 			WithServiceFile(serviceAccountKeyFile),
 			WithDefaultEndpoint(),
