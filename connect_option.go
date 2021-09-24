@@ -13,7 +13,7 @@ import (
 func WithMetadataCredentials(ctx context.Context) ydb.Option {
 	return ydb.WithCredentials(
 		auth.InstanceServiceAccount(
-			credentials.WithCredentialsSourceInfo(ctx, "connect.WithMetadataCredentials(ctx)"),
+			credentials.WithCredentialsSourceInfo(ctx, "yc.WithMetadataCredentials(ctx)"),
 		),
 	)
 }
@@ -24,7 +24,7 @@ func WithServiceAccountKeyFileCredentials(serviceAccountKeyFile string) ydb.Opti
 			auth.WithServiceFile(serviceAccountKeyFile),
 			auth.WithDefaultEndpoint(),
 			auth.WithSystemCertPool(),
-			auth.WithSourceInfo("connect.WithServiceAccountKeyFileCredentials(\""+serviceAccountKeyFile+"\")"),
+			auth.WithSourceInfo("yc.WithServiceAccountKeyFileCredentials(\""+serviceAccountKeyFile+"\")"),
 		)
 		if err != nil {
 			return nil, fmt.Errorf("configure credentials error: %w", err)
