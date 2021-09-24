@@ -1,7 +1,7 @@
 /*
 Package iam provides interface for retrieving and caching iam tokens.
 */
-package iam
+package auth
 
 import (
 	"context"
