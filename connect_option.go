@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/x509"
 	"fmt"
+	"github.com/ydb-platform/ydb-go-sdk/v3/ydbsql"
 
 	"github.com/ydb-platform/ydb-go-sdk/v3"
 	"github.com/ydb-platform/ydb-go-sdk/v3/credentials"
@@ -43,4 +44,8 @@ func WithInternalCA() ydb.Option {
 		panic("cannot append yandex-cloud PEM")
 	}
 	return ydb.WithCertificates(certPool)
+}
+
+func WithYdbSqlInternalCA() ydbsql.ConnectorOption {
+	return ydbsql.WithCertificatesFromPem(ycPEM)
 }
