@@ -4,10 +4,11 @@ import (
 	"context"
 	"crypto/x509"
 	"fmt"
-	"github.com/ydb-platform/ydb-go-yc/auth"
 
 	"github.com/ydb-platform/ydb-go-sdk/v3"
 	"github.com/ydb-platform/ydb-go-sdk/v3/credentials"
+
+	"github.com/ydb-platform/ydb-go-yc/auth"
 )
 
 func WithMetadataCredentials(ctx context.Context) ydb.Option {

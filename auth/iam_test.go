@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt"
+
 	"github.com/ydb-platform/ydb-go-sdk/v3/testutil/timeutil"
 )
 
