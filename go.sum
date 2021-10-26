@@ -44,6 +44,8 @@ github.com/ydb-platform/ydb-go-sdk/v3 v3.0.0-20211023143202-243a81584817 h1:f3rb
 github.com/ydb-platform/ydb-go-sdk/v3 v3.0.0-20211023143202-243a81584817/go.mod h1:k6HFq1cVE3ykqCTGPbZRqNBnTVvjoZ/pflWQLToEdXY=
 github.com/ydb-platform/ydb-go-sdk/v3 v3.0.0 h1:32zXZLh65mTh11Trb9FXo6mbGPJFFCCfaEgDCE4OCKo=
 github.com/ydb-platform/ydb-go-sdk/v3 v3.0.0/go.mod h1:AVrHVTBBQQP93j4V1LduAq90BvFZAu0XNtkekY+ypDQ=
+github.com/ydb-platform/ydb-go-sdk/v3 v3.0.1-release h1:+R+UyB18ntHL2BMznYPud4Y8ga1KdqDSsSBIUZAIUyk=
+github.com/ydb-platform/ydb-go-sdk/v3 v3.0.1-release/go.mod h1:aDAMirAXDdCeMRJV01EykAXXz6Ye2eM7H7PRJb6DvHo=
 golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2/go.mod h1:djNgcEr1/C05ACkg1iLfiJU5Ep61QUkGW8qpdssI0+w=
 golang.org/x/exp v0.0.0-20190121172915-509febef88a4/go.mod h1:CJ0aWSM057203Lf6IL+f9T1iT9GByDxfZKAQTCR3kQA=
 golang.org/x/lint v0.0.0-20181026193005-c67002cb31c3/go.mod h1:UVdnD1Gm6xHRNCYTkRU2/jEulfH38KcIWyp/GAMgvoE=
