@@ -33,7 +33,7 @@ func WithMetadataCredentialsURL(ctx context.Context, url string) ydb.Option {
 
 func WithServiceAccountKeyFileCredentials(serviceAccountKeyFile string, opts ...auth.ClientOption) ydb.Option {
 	return ydb.WithCreateCredentialsFunc(func(ctx context.Context) (credentials.Credentials, error) {
-		credentials, err := auth.NewClient(
+		cli, err := auth.NewClient(
 			append(
 				[]auth.ClientOption{
 					auth.WithServiceFile(serviceAccountKeyFile),
@@ -47,7 +47,17 @@ func WithServiceAccountKeyFileCredentials(serviceAccountKeyFile string, opts ...
 		if err != nil {
 			return nil, fmt.Errorf("configure credentials error: %w", err)
 		}
-		return credentials, nil
+		return cli, nil
+	})
+}
+
+func WithAuthClientOptions(opts ...auth.ClientOption) ydb.Option {
+	return ydb.WithCreateCredentialsFunc(func(ctx context.Context) (credentials.Credentials, error) {
+		cli, err := auth.NewClient(opts...)
+		if err != nil {
+			return nil, fmt.Errorf("configure credentials error: %w", err)
+		}
+		return cli, nil
 	})
 }
 
