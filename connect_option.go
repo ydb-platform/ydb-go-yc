@@ -32,32 +32,21 @@ func WithMetadataCredentialsURL(ctx context.Context, url string) ydb.Option {
 }
 
 func WithServiceAccountKeyFileCredentials(serviceAccountKeyFile string, opts ...auth.ClientOption) ydb.Option {
-	return ydb.WithCreateCredentialsFunc(func(ctx context.Context) (credentials.Credentials, error) {
-		cli, err := auth.NewClient(
-			append(
-				[]auth.ClientOption{
-					auth.WithServiceFile(serviceAccountKeyFile),
-					auth.WithDefaultEndpoint(),
-					auth.WithSystemCertPool(),
-					auth.WithSourceInfo("yc.WithServiceAccountKeyFileCredentials(\"" + serviceAccountKeyFile + "\")"),
-				},
-				opts...,
-			)...,
-		)
-		if err != nil {
-			return nil, fmt.Errorf("configure credentials error: %w", err)
-		}
-		return cli, nil
-	})
+	return WithAuthClientCredentials(
+		append(
+			[]auth.ClientOption{auth.WithServiceFile(serviceAccountKeyFile)},
+			opts...,
+		)...,
+	)
 }
 
-func WithAuthClientOptions(opts ...auth.ClientOption) ydb.Option {
+func WithAuthClientCredentials(opts ...auth.ClientOption) ydb.Option {
 	return ydb.WithCreateCredentialsFunc(func(ctx context.Context) (credentials.Credentials, error) {
-		cli, err := auth.NewClient(opts...)
+		credentials, err := auth.NewClient(opts...)
 		if err != nil {
 			return nil, fmt.Errorf("configure credentials error: %w", err)
 		}
-		return cli, nil
+		return credentials, nil
 	})
 }
 
