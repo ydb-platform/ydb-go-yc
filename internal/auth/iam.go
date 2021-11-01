@@ -12,6 +12,9 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"os"
+	"os/user"
+	"path/filepath"
 	"sync"
 	"time"
 
@@ -89,11 +92,20 @@ func WithCertPool(certPool *x509.CertPool) ClientOption {
 // WithCertPoolFile try set root certPool from provided cert file path.
 func WithCertPoolFile(caFile string) ClientOption {
 	return func(c *client) error {
-		cp := x509.NewCertPool()
-		if err := credentials.AppendCertsFromFile(cp, caFile); err != nil {
+		if len(caFile) > 0 && caFile[0] == '~' {
+			usr, err := user.Current()
+			if err != nil {
+				return err
+			}
+			caFile = filepath.Join(usr.HomeDir, caFile[1:])
+		}
+		bytes, err := os.ReadFile(caFile)
+		if err != nil {
 			return err
 		}
-		c.CertPool = cp
+		if !c.CertPool.AppendCertsFromPEM(bytes) {
+			return fmt.Errorf("cannot append certificates from file '%s' to certificates pool", caFile)
+		}
 		return nil
 	}
 }
