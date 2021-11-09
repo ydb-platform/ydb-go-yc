@@ -14,6 +14,8 @@ import (
 	"github.com/ydb-platform/ydb-go-yc/internal/pem"
 )
 
+type ClientOption auth.ClientOption
+
 func WithMetadataCredentials(ctx context.Context) ydb.Option {
 	return ydb.WithCredentials(
 		auth.InstanceServiceAccount(
@@ -31,18 +33,22 @@ func WithMetadataCredentialsURL(ctx context.Context, url string) ydb.Option {
 	)
 }
 
-func WithServiceAccountKeyFileCredentials(serviceAccountKeyFile string, opts ...auth.ClientOption) ydb.Option {
+func WithServiceAccountKeyFileCredentials(serviceAccountKeyFile string, opts ...ClientOption) ydb.Option {
 	return WithAuthClientCredentials(
 		append(
-			[]auth.ClientOption{auth.WithServiceFile(serviceAccountKeyFile)},
+			[]ClientOption{ClientOption(auth.WithServiceFile(serviceAccountKeyFile))},
 			opts...,
 		)...,
 	)
 }
 
-func WithAuthClientCredentials(opts ...auth.ClientOption) ydb.Option {
+func WithAuthClientCredentials(opts ...ClientOption) ydb.Option {
 	return ydb.WithCreateCredentialsFunc(func(ctx context.Context) (credentials.Credentials, error) {
-		credentials, err := auth.NewClient(opts...)
+		options := make([]auth.ClientOption, 0, len(opts))
+		for _, option := range opts {
+			options = append(options, auth.ClientOption(option))
+		}
+		credentials, err := auth.NewClient(options...)
 		if err != nil {
 			return nil, fmt.Errorf("configure credentials error: %w", err)
 		}
@@ -56,33 +62,33 @@ func WithInternalCA() ydb.Option {
 }
 
 // WithEndpoint set provided endpoint.
-func WithEndpoint(endpoint string) auth.ClientOption {
-	return auth.WithEndpoint(endpoint)
+func WithEndpoint(endpoint string) ClientOption {
+	return ClientOption(auth.WithEndpoint(endpoint))
 }
 
 // WithDefaultEndpoint set endpoint with default value.
-func WithDefaultEndpoint() auth.ClientOption {
-	return auth.WithDefaultEndpoint()
+func WithDefaultEndpoint() ClientOption {
+	return ClientOption(auth.WithDefaultEndpoint())
 }
 
 // WithSourceInfo set sourceInfo
-func WithSourceInfo(sourceInfo string) auth.ClientOption {
-	return auth.WithSourceInfo(sourceInfo)
+func WithSourceInfo(sourceInfo string) ClientOption {
+	return ClientOption(auth.WithSourceInfo(sourceInfo))
 }
 
 // WithCertPool set provided certPool.
-func WithCertPool(certPool *x509.CertPool) auth.ClientOption {
-	return auth.WithCertPool(certPool)
+func WithCertPool(certPool *x509.CertPool) ClientOption {
+	return ClientOption(auth.WithCertPool(certPool))
 }
 
 // WithCertPoolFile try set root certPool from provided cert file path.
-func WithCertPoolFile(caFile string) auth.ClientOption {
-	return auth.WithCertPoolFile(caFile)
+func WithCertPoolFile(caFile string) ClientOption {
+	return ClientOption(auth.WithCertPoolFile(caFile))
 }
 
 // WithSystemCertPool try set certPool with system root certificates.
-func WithSystemCertPool() auth.ClientOption {
-	return auth.WithSystemCertPool()
+func WithSystemCertPool() ClientOption {
+	return ClientOption(auth.WithSystemCertPool())
 }
 
 // WithInsecureSkipVerify set insecureSkipVerify to true which force client accepts any TLS certificate
@@ -91,43 +97,43 @@ func WithSystemCertPool() auth.ClientOption {
 // If InsecureSkipVerify is set, then certPool field is not used.
 //
 // This should be used only for testing purposes.
-func WithInsecureSkipVerify(insecure bool) auth.ClientOption {
-	return auth.WithInsecureSkipVerify(insecure)
+func WithInsecureSkipVerify(insecure bool) ClientOption {
+	return ClientOption(auth.WithInsecureSkipVerify(insecure))
 }
 
 // WithKeyID set provided keyID.
-func WithKeyID(keyID string) auth.ClientOption {
-	return auth.WithKeyID(keyID)
+func WithKeyID(keyID string) ClientOption {
+	return ClientOption(auth.WithKeyID(keyID))
 }
 
 // WithIssuer set provided issuer.
-func WithIssuer(issuer string) auth.ClientOption {
-	return auth.WithIssuer(issuer)
+func WithIssuer(issuer string) ClientOption {
+	return ClientOption(auth.WithIssuer(issuer))
 }
 
 // WithTokenTTL set provided tokenTTL duration.
-func WithTokenTTL(tokenTTL time.Duration) auth.ClientOption {
-	return auth.WithTokenTTL(tokenTTL)
+func WithTokenTTL(tokenTTL time.Duration) ClientOption {
+	return ClientOption(auth.WithTokenTTL(tokenTTL))
 }
 
 // WithAudience set provided audience.
-func WithAudience(audience string) auth.ClientOption {
-	return auth.WithAudience(audience)
+func WithAudience(audience string) ClientOption {
+	return ClientOption(auth.WithAudience(audience))
 }
 
 // WithPrivateKey set provided private key.
-func WithPrivateKey(key *rsa.PrivateKey) auth.ClientOption {
-	return auth.WithPrivateKey(key)
+func WithPrivateKey(key *rsa.PrivateKey) ClientOption {
+	return ClientOption(auth.WithPrivateKey(key))
 }
 
 // WithPrivateKeyFile try set key from provided private key file path
-func WithPrivateKeyFile(path string) auth.ClientOption {
-	return auth.WithPrivateKeyFile(path)
+func WithPrivateKeyFile(path string) ClientOption {
+	return ClientOption(auth.WithPrivateKeyFile(path))
 }
 
 // WithServiceFile try set key, keyID, issuer from provided service account file path.
 //
 // Do not mix this option with WithKeyID, WithIssuer and key options (WithPrivateKey, WithPrivateKeyFile, etc).
-func WithServiceFile(path string) auth.ClientOption {
-	return auth.WithServiceFile(path)
+func WithServiceFile(path string) ClientOption {
+	return ClientOption(auth.WithServiceFile(path))
 }
