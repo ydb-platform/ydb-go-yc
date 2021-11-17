@@ -113,26 +113,30 @@ func (m *instanceServiceAccountCredentials) refreshOnce() {
 	m.token, m.expiry, m.err = tok.Token, now.Add(tok.ExpiresIn), nil
 }
 
-// InstanceServiceAccountURL makes credentials provider that uses instance metadata url to obtain token for service account attached to instance.
-// Cancelling context will lead to credentials refresh halt.
-// It should be used during application stop or credentials recreation.
-func InstanceServiceAccountURL(ctx context.Context, url string) credentials.Credentials {
+type InstanceServiceAccountCredentialsOption func(c *instanceServiceAccountCredentials)
+
+func WithInstanceServiceAccountURL(url string) InstanceServiceAccountCredentialsOption {
+	return func(c *instanceServiceAccountCredentials) {
+		c.metadataURL = url
+	}
+}
+
+// InstanceServiceAccount makes credentials provider that uses instance metadata url to obtain
+// token for service account attached to instance. Cancelling context will lead to credentials
+// refresh halt. It should be used during application stop or credentials recreation.
+func InstanceServiceAccount(ctx context.Context, opts ...InstanceServiceAccountCredentialsOption) credentials.Credentials {
 	caller, _ := credentials.ContextCredentialsSourceInfo(ctx)
 	creds := &instanceServiceAccountCredentials{
-		metadataURL: url,
+		metadataURL: metadataURL,
 		mu:          &sync.RWMutex{},
 		ctx:         ctx,
 		timer:       time.NewTimer(0), // Allocate expired
 		caller:      caller,
 	}
+	for _, o := range opts {
+		o(creds)
+	}
 	// Start refresh loop.
 	go creds.refreshLoop()
 	return creds
-}
-
-// InstanceServiceAccount makes credentials provider that uses instance metadata with default url to obtain token for service account attached to instance.
-// Cancelling context will lead to credentials refresh halt.
-// It should be used during application stop or credentials recreation.
-func InstanceServiceAccount(ctx context.Context) credentials.Credentials {
-	return InstanceServiceAccountURL(ctx, metadataURL)
 }

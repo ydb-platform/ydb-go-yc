@@ -16,19 +16,15 @@ import (
 
 type ClientOption auth.ClientOption
 
-func WithMetadataCredentials(ctx context.Context) ydb.Option {
+func WithMetadataCredentialsURL(url string) auth.InstanceServiceAccountCredentialsOption {
+	return auth.WithInstanceServiceAccountURL(url)
+}
+
+func WithMetadataCredentials(ctx context.Context, opts ...auth.InstanceServiceAccountCredentialsOption) ydb.Option {
 	return ydb.WithCredentials(
 		auth.InstanceServiceAccount(
 			credentials.WithCredentialsSourceInfo(ctx, "yc.WithMetadataCredentials(ctx)"),
-		),
-	)
-}
-
-func WithMetadataCredentialsURL(ctx context.Context, url string) ydb.Option {
-	return ydb.WithCredentials(
-		auth.InstanceServiceAccountURL(
-			credentials.WithCredentialsSourceInfo(ctx, "yc.WithMetadataCredentialsURL(ctx, "+url+")"),
-			url,
+			opts...,
 		),
 	)
 }
