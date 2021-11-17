@@ -126,7 +126,7 @@ func WithInstanceServiceAccountURL(url string) InstanceServiceAccountCredentials
 // refresh halt. It should be used during application stop or credentials recreation.
 func InstanceServiceAccount(ctx context.Context, opts ...InstanceServiceAccountCredentialsOption) credentials.Credentials {
 	caller, _ := credentials.ContextCredentialsSourceInfo(ctx)
-	creds := &instanceServiceAccountCredentials{
+	credentials := &instanceServiceAccountCredentials{
 		metadataURL: metadataURL,
 		mu:          &sync.RWMutex{},
 		ctx:         ctx,
@@ -134,9 +134,9 @@ func InstanceServiceAccount(ctx context.Context, opts ...InstanceServiceAccountC
 		caller:      caller,
 	}
 	for _, o := range opts {
-		o(creds)
+		o(credentials)
 	}
 	// Start refresh loop.
-	go creds.refreshLoop()
-	return creds
+	go credentials.refreshLoop()
+	return credentials
 }
