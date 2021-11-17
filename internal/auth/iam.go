@@ -225,9 +225,13 @@ func WithServiceFile(path string) ClientOption {
 //
 // To create successfully at least one of endpoint options must be provided.
 func NewClient(opts ...ClientOption) (credentials.Credentials, error) {
+	certPool, err := x509.SystemCertPool()
+	if err != nil {
+		certPool = x509.NewCertPool()
+	}
 	c := &client{
 		Endpoint:           DefaultEndpoint,
-		CertPool:           x509.NewCertPool(),
+		CertPool:           certPool,
 		InsecureSkipVerify: true,
 		TokenTTL:           DefaultTokenTTL,
 		Audience:           DefaultAudience,
