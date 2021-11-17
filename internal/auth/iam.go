@@ -225,21 +225,18 @@ func WithServiceFile(path string) ClientOption {
 //
 // To create successfully at least one of endpoint options must be provided.
 func NewClient(opts ...ClientOption) (credentials.Credentials, error) {
-	c := &client{}
+	c := &client{
+		Endpoint:           DefaultEndpoint,
+		CertPool:           x509.NewCertPool(),
+		InsecureSkipVerify: true,
+		TokenTTL:           DefaultTokenTTL,
+		Audience:           DefaultAudience,
+	}
 	for _, opt := range opts {
 		err := opt(c)
 		if err != nil {
 			return nil, err
 		}
-	}
-	if c.Endpoint == "" {
-		return nil, ErrEndpointRequired
-	}
-	if c.Audience == "" {
-		c.Audience = DefaultAudience
-	}
-	if c.TokenTTL == 0 {
-		c.TokenTTL = DefaultTokenTTL
 	}
 	c.transport = &grpcTransport{
 		endpoint:           c.Endpoint,
