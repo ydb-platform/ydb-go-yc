@@ -193,7 +193,14 @@ func WithPrivateKeyFile(path string) ClientOption {
 // Do not mix this option with WithKeyID, WithIssuer and key options (WithPrivateKey, WithPrivateKeyFile, etc).
 func WithServiceFile(path string) ClientOption {
 	return func(c *client) error {
-		data, err := ioutil.ReadFile(path)
+		if len(path) > 0 && path[0] == '~' {
+			home, err := os.UserHomeDir()
+			if err != nil {
+				return err
+			}
+			path = filepath.Join(home, path[1:])
+		}
+		data, err := os.ReadFile(filepath.Clean(path))
 		if err != nil {
 			return err
 		}
