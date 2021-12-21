@@ -121,17 +121,21 @@ func WithInstanceServiceAccountURL(url string) InstanceServiceAccountCredentials
 	}
 }
 
+func WithInstanceServiceAccountCredentialsSourceInfo(sourceInfo string) InstanceServiceAccountCredentialsOption {
+	return func(c *instanceServiceAccountCredentials) {
+		c.caller = sourceInfo
+	}
+}
+
 // InstanceServiceAccount makes credentials provider that uses instance metadata url to obtain
 // token for service account attached to instance. Cancelling context will lead to credentials
 // refresh halt. It should be used during application stop or credentials recreation.
 func InstanceServiceAccount(ctx context.Context, opts ...InstanceServiceAccountCredentialsOption) credentials.Credentials {
-	caller, _ := credentials.ContextCredentialsSourceInfo(ctx)
 	credentials := &instanceServiceAccountCredentials{
 		metadataURL: metadataURL,
 		mu:          &sync.RWMutex{},
 		ctx:         ctx,
 		timer:       time.NewTimer(0), // Allocate expired
-		caller:      caller,
 	}
 	for _, o := range opts {
 		o(credentials)

@@ -17,7 +17,12 @@ func NewClient(opts ...ClientOption) (credentials.Credentials, error) {
 
 func NewInstanceServiceAccount(ctx context.Context, opts ...auth.InstanceServiceAccountCredentialsOption) credentials.Credentials {
 	return auth.InstanceServiceAccount(
-		credentials.WithCredentialsSourceInfo(ctx, "yc.NewInstanceServiceAccount(ctx)"),
-		opts...,
+		ctx,
+		append(
+			[]auth.InstanceServiceAccountCredentialsOption{
+				auth.WithInstanceServiceAccountCredentialsSourceInfo("yc.NewInstanceServiceAccount(ctx)"),
+			},
+			opts...,
+		)...,
 	)
 }

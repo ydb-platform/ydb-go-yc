@@ -22,10 +22,7 @@ func WithMetadataCredentialsURL(url string) auth.InstanceServiceAccountCredentia
 
 func WithMetadataCredentials(ctx context.Context, opts ...auth.InstanceServiceAccountCredentialsOption) ydb.Option {
 	return ydb.WithCredentials(
-		auth.InstanceServiceAccount(
-			credentials.WithCredentialsSourceInfo(ctx, "yc.WithMetadataCredentials(ctx)"),
-			opts...,
-		),
+		NewInstanceServiceAccount(ctx, opts...),
 	)
 }
 
