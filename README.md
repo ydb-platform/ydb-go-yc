@@ -2,7 +2,7 @@
 
 > helpers to connect to YDB inside yandex-cloud 
 
-[godoc](https://godoc.org/github.com/ydb-platform/ydb-go-sdk/v3/)
+[godoc](https://godoc.org/github.com/ydb-platform/ydb-go-yc/)
 
 ## Table of contents
 1. [Overview](#Overview)
@@ -45,6 +45,10 @@ go get -u github.com/ydb-platform/ydb-go-yc
 ## Usage <a name="Usage"></a>
 
 ```go
+import (
+    yc "github.com/ydb-platform/ydb-go-yc"
+)
+...
     db, err := ydb.New(
         ctx,
         connectParams,

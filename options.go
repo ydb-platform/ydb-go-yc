@@ -9,20 +9,23 @@ import (
 
 	"github.com/ydb-platform/ydb-go-sdk/v3"
 	"github.com/ydb-platform/ydb-go-sdk/v3/credentials"
+	"github.com/ydb-platform/ydb-go-yc-metadata"
 
 	"github.com/ydb-platform/ydb-go-yc/internal/auth"
-	"github.com/ydb-platform/ydb-go-yc/internal/pem"
 )
 
 type ClientOption auth.ClientOption
 
-func WithMetadataCredentialsURL(url string) auth.InstanceServiceAccountCredentialsOption {
-	return auth.WithInstanceServiceAccountURL(url)
+func WithMetadataCredentialsURL(ctx context.Context, url string) ydb.Option {
+	return yc.WithCredentials(
+		ctx,
+		yc.WithURL(url),
+	)
 }
 
-func WithMetadataCredentials(ctx context.Context, opts ...auth.InstanceServiceAccountCredentialsOption) ydb.Option {
-	return ydb.WithCredentials(
-		NewInstanceServiceAccount(ctx, opts...),
+func WithMetadataCredentials(ctx context.Context) ydb.Option {
+	return yc.WithCredentials(
+		ctx,
 	)
 }
 
@@ -51,7 +54,7 @@ func WithAuthClientCredentials(opts ...ClientOption) ydb.Option {
 
 // WithInternalCA append internal yandex-cloud certs
 func WithInternalCA() ydb.Option {
-	return ydb.WithCertificatesFromPem(pem.YcPEM)
+	return yc.WithInternalCA()
 }
 
 // WithEndpoint set provided endpoint.
