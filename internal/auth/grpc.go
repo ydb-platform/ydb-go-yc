@@ -8,6 +8,7 @@ import (
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc/credentials/insecure"
 
 	v1 "github.com/yandex-cloud/go-genproto/yandex/cloud/iam/v1"
 )
@@ -51,7 +52,7 @@ func (t *grpcTransport) conn(ctx context.Context) (*grpc.ClientConn, error) {
 	switch {
 	case t.insecure:
 		opts = []grpc.DialOption{
-			grpc.WithInsecure(),
+			grpc.WithTransportCredentials(insecure.NewCredentials()),
 		}
 	case t.insecureSkipVerify:
 		opts = []grpc.DialOption{
