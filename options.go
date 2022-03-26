@@ -46,7 +46,7 @@ func WithAuthClientCredentials(opts ...ClientOption) ydb.Option {
 		}
 		credentials, err := auth.NewClient(options...)
 		if err != nil {
-			return nil, fmt.Errorf("configure credentials error: %w", err)
+			return nil, fmt.Errorf("credentials configure error: %w", err)
 		}
 		return credentials, nil
 	})
@@ -55,6 +55,11 @@ func WithAuthClientCredentials(opts ...ClientOption) ydb.Option {
 // WithInternalCA append internal yandex-cloud certs
 func WithInternalCA() ydb.Option {
 	return yc.WithInternalCA()
+}
+
+// WithFallbackCredentials makes fallback credentials if primary credentials are failed
+func WithFallbackCredentials(fallback credentials.Credentials) ClientOption {
+	return ClientOption(auth.WithFallbackCredentials(fallback))
 }
 
 // WithEndpoint set provided endpoint.
@@ -90,7 +95,7 @@ func WithSystemCertPool() ClientOption {
 // WithInsecureSkipVerify set insecureSkipVerify to true which force client accepts any TLS certificate
 // presented by the iam server and any host name in that certificate.
 //
-// If InsecureSkipVerify is set, then certPool field is not used.
+// If insecureSkipVerify is set, then certPool field is not used.
 //
 // This should be used only for testing purposes.
 func WithInsecureSkipVerify(insecure bool) ClientOption {

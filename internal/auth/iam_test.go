@@ -53,13 +53,13 @@ func TestClientToken(t *testing.T) {
 		}
 	)
 	c := client{
-		Endpoint: endpoint,
-		Key:      key,
-		KeyID:    keyID,
-		Issuer:   issuer,
+		endpoint: endpoint,
+		key:      key,
+		keyID:    keyID,
+		issuer:   issuer,
 
-		Audience: audience,
-		TokenTTL: ttl,
+		audience: audience,
+		tokenTTL: ttl,
 
 		// Stub the real transport logic to check jwt token for correctness.
 		transport: TransportFunc(func(ctx context.Context, jwts string) (
@@ -86,10 +86,10 @@ func TestClientToken(t *testing.T) {
 			exp := now.UTC().Add(ttl).Unix()
 
 			if act, exp := claims.Issuer, issuer; act != exp {
-				t.Errorf("unexpected claims.Issuer field: %+q; want %+q", act, exp)
+				t.Errorf("unexpected claims.issuer field: %+q; want %+q", act, exp)
 			}
 			if act, exp := claims.Audience, audience; act != exp {
-				t.Errorf("unexpected claims.Audience field: %+q; want %+q", act, exp)
+				t.Errorf("unexpected claims.audience field: %+q; want %+q", act, exp)
 			}
 			if act, exp := claims.IssuedAt, iat; act != exp {
 				t.Errorf("unexpected claims.IssuedAt field: %+q; want %+q", act, exp)
@@ -165,12 +165,12 @@ func TestOptionsConfig(t *testing.T) {
 		t.Error(err)
 	}
 	if cl, ok := c.(*client); !ok ||
-		cl.KeyID != keyID ||
-		cl.Issuer != issuer ||
-		cl.Audience != audience ||
-		cl.Endpoint != endpoint ||
-		cl.TokenTTL != ttl ||
-		cl.Key != key {
+		cl.keyID != keyID ||
+		cl.issuer != issuer ||
+		cl.audience != audience ||
+		cl.endpoint != endpoint ||
+		cl.tokenTTL != ttl ||
+		cl.key != key {
 		t.Error("client object doesn't match")
 	}
 

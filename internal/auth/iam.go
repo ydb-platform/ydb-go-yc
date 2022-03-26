@@ -57,10 +57,18 @@ type transport interface {
 
 type ClientOption func(*client) error
 
+// WithFallbackCredentials makes fallback credentials if primary credentials are failed
+func WithFallbackCredentials(fallback credentials.Credentials) ClientOption {
+	return func(c *client) error {
+		c.fallback = fallback
+		return nil
+	}
+}
+
 // WithEndpoint set provided endpoint.
 func WithEndpoint(endpoint string) ClientOption {
 	return func(c *client) error {
-		c.Endpoint = endpoint
+		c.endpoint = endpoint
 		return nil
 	}
 }
@@ -68,7 +76,7 @@ func WithEndpoint(endpoint string) ClientOption {
 // WithDefaultEndpoint set endpoint with default value.
 func WithDefaultEndpoint() ClientOption {
 	return func(c *client) error {
-		c.Endpoint = DefaultEndpoint
+		c.endpoint = DefaultEndpoint
 		return nil
 	}
 }
@@ -84,7 +92,7 @@ func WithSourceInfo(sourceInfo string) ClientOption {
 // WithCertPool set provided certPool.
 func WithCertPool(certPool *x509.CertPool) ClientOption {
 	return func(c *client) error {
-		c.CertPool = certPool
+		c.certPool = certPool
 		return nil
 	}
 }
@@ -103,7 +111,7 @@ func WithCertPoolFile(caFile string) ClientOption {
 		if err != nil {
 			return err
 		}
-		if !c.CertPool.AppendCertsFromPEM(bytes) {
+		if !c.certPool.AppendCertsFromPEM(bytes) {
 			return fmt.Errorf("cannot append certificates from file '%s' to certificates pool", caFile)
 		}
 		return nil
@@ -114,7 +122,7 @@ func WithCertPoolFile(caFile string) ClientOption {
 func WithSystemCertPool() ClientOption {
 	return func(c *client) error {
 		var err error
-		c.CertPool, err = x509.SystemCertPool()
+		c.certPool, err = x509.SystemCertPool()
 		return err
 	}
 }
@@ -122,12 +130,12 @@ func WithSystemCertPool() ClientOption {
 // WithInsecureSkipVerify set insecureSkipVerify to true which force client accepts any TLS certificate
 // presented by the iam server and any host name in that certificate.
 //
-// If InsecureSkipVerify is set, then certPool field is not used.
+// If insecureSkipVerify is set, then certPool field is not used.
 //
 // This should be used only for testing purposes.
 func WithInsecureSkipVerify(insecure bool) ClientOption {
 	return func(c *client) error {
-		c.InsecureSkipVerify = insecure
+		c.insecureSkipVerify = insecure
 		return nil
 	}
 }
@@ -135,7 +143,7 @@ func WithInsecureSkipVerify(insecure bool) ClientOption {
 // WithKeyID set provided keyID.
 func WithKeyID(keyID string) ClientOption {
 	return func(c *client) error {
-		c.KeyID = keyID
+		c.keyID = keyID
 		return nil
 	}
 }
@@ -143,7 +151,7 @@ func WithKeyID(keyID string) ClientOption {
 // WithIssuer set provided issuer.
 func WithIssuer(issuer string) ClientOption {
 	return func(c *client) error {
-		c.Issuer = issuer
+		c.issuer = issuer
 		return nil
 	}
 }
@@ -151,7 +159,7 @@ func WithIssuer(issuer string) ClientOption {
 // WithTokenTTL set provided tokenTTL duration.
 func WithTokenTTL(tokenTTL time.Duration) ClientOption {
 	return func(c *client) error {
-		c.TokenTTL = tokenTTL
+		c.tokenTTL = tokenTTL
 		return nil
 	}
 }
@@ -159,7 +167,7 @@ func WithTokenTTL(tokenTTL time.Duration) ClientOption {
 // WithAudience set provided audience.
 func WithAudience(audience string) ClientOption {
 	return func(c *client) error {
-		c.Audience = audience
+		c.audience = audience
 		return nil
 	}
 }
@@ -167,7 +175,7 @@ func WithAudience(audience string) ClientOption {
 // WithPrivateKey set provided private key.
 func WithPrivateKey(key *rsa.PrivateKey) ClientOption {
 	return func(c *client) error {
-		c.Key = key
+		c.key = key
 		return nil
 	}
 }
@@ -183,7 +191,7 @@ func WithPrivateKeyFile(path string) ClientOption {
 		if err != nil {
 			return err
 		}
-		c.Key = key
+		c.key = key
 		return nil
 	}
 }
@@ -221,9 +229,9 @@ func WithServiceFile(path string) ClientOption {
 		if err != nil {
 			return err
 		}
-		c.Key = key
-		c.KeyID = info.ID
-		c.Issuer = info.ServiceAccountID
+		c.key = key
+		c.keyID = info.ID
+		c.issuer = info.ServiceAccountID
 		return nil
 	}
 }
@@ -231,28 +239,42 @@ func WithServiceFile(path string) ClientOption {
 // NewClient creates IAM (jwt) authorized client from provided ClientOptions list.
 //
 // To create successfully at least one of endpoint options must be provided.
-func NewClient(opts ...ClientOption) (credentials.Credentials, error) {
-	certPool, err := x509.SystemCertPool()
+func NewClient(opts ...ClientOption) (_ credentials.Credentials, err error) {
+	var (
+		certPool *x509.CertPool
+		issues   []error
+	)
+	certPool, err = x509.SystemCertPool()
 	if err != nil {
 		certPool = x509.NewCertPool()
 	}
+
 	c := &client{
-		Endpoint:           DefaultEndpoint,
-		CertPool:           certPool,
-		InsecureSkipVerify: true,
-		TokenTTL:           DefaultTokenTTL,
-		Audience:           DefaultAudience,
+		endpoint:           DefaultEndpoint,
+		certPool:           certPool,
+		insecureSkipVerify: true,
+		tokenTTL:           DefaultTokenTTL,
+		audience:           DefaultAudience,
 	}
+
 	for _, opt := range opts {
-		err := opt(c)
+		err = opt(c)
 		if err != nil {
-			return nil, err
+			issues = append(issues, err)
 		}
 	}
+
+	if len(issues) > 0 {
+		if c.fallback != nil {
+			return c.fallback, nil
+		}
+		return nil, fmt.Errorf("cannot create IAM client: %v", issues)
+	}
+
 	c.transport = &grpcTransport{
-		endpoint:           c.Endpoint,
-		certPool:           c.CertPool,
-		insecureSkipVerify: c.InsecureSkipVerify,
+		endpoint:           c.endpoint,
+		certPool:           c.certPool,
+		insecureSkipVerify: c.insecureSkipVerify,
 	}
 
 	return c, nil
@@ -260,23 +282,23 @@ func NewClient(opts ...ClientOption) (credentials.Credentials, error) {
 
 // Client contains options for interaction with the iam.
 type client struct {
-	Endpoint string
-	CertPool *x509.CertPool
+	endpoint string
+	certPool *x509.CertPool
 
-	// If InsecureSkipVerify is true, client accepts any TLS certificate
+	// If insecureSkipVerify is true, client accepts any TLS certificate
 	// presented by the iam server and any host name in that certificate.
 	//
-	// If InsecureSkipVerify is set, then CertPool field is not used.
+	// If insecureSkipVerify is set, then certPool field is not used.
 	//
 	// This should be used only for testing.
-	InsecureSkipVerify bool
+	insecureSkipVerify bool
 
-	Key    *rsa.PrivateKey
-	KeyID  string
-	Issuer string
+	key    *rsa.PrivateKey
+	keyID  string
+	issuer string
 
-	TokenTTL time.Duration
-	Audience string
+	tokenTTL time.Duration
+	audience string
 
 	once    sync.Once
 	mu      sync.RWMutex
@@ -288,25 +310,27 @@ type client struct {
 	transport transport
 
 	sourceInfo string
+
+	fallback credentials.Credentials
 }
 
 func (c *client) init() (err error) {
 	c.once.Do(func() {
-		if c.Endpoint == "" {
+		if c.endpoint == "" {
 			c.err = fmt.Errorf("iam: endpoint required")
 			return
 		}
-		if c.Audience == "" {
-			c.Audience = DefaultAudience
+		if c.audience == "" {
+			c.audience = DefaultAudience
 		}
-		if c.TokenTTL == 0 {
-			c.TokenTTL = DefaultTokenTTL
+		if c.tokenTTL == 0 {
+			c.tokenTTL = DefaultTokenTTL
 		}
 		if c.transport == nil {
 			c.transport = &grpcTransport{
-				endpoint:           c.Endpoint,
-				certPool:           c.CertPool,
-				insecureSkipVerify: c.InsecureSkipVerify,
+				endpoint:           c.endpoint,
+				certPool:           c.certPool,
+				insecureSkipVerify: c.insecureSkipVerify,
 			}
 		}
 	})
@@ -320,7 +344,7 @@ func (c *client) String() string {
 	return "iam.Client created from " + c.sourceInfo
 }
 
-// Token returns cached token if no c.TokenTTL time has passed or no token
+// Token returns cached token if no c.tokenTTL time has passed or no token
 // expiration deadline from the last request exceeded. In other way, it makes
 // request for a new one token.
 func (c *client) Token(ctx context.Context) (token string, err error) {
@@ -350,7 +374,7 @@ func (c *client) Token(ctx context.Context) (token string, err error) {
 		}
 	}
 	c.token = token
-	c.expires = now.Add(c.TokenTTL)
+	c.expires = now.Add(c.tokenTTL)
 	if expires.Before(c.expires) {
 		c.expires = expires
 	}
@@ -375,24 +399,24 @@ var ps256WithSaltLengthEqualsHash = &jwt.SigningMethodRSAPSS{
 func (c *client) jwt(now time.Time) string {
 	var (
 		issued = now.UTC().Unix()
-		expire = now.Add(c.TokenTTL).UTC().Unix()
+		expire = now.Add(c.tokenTTL).UTC().Unix()
 		method = ps256WithSaltLengthEqualsHash
 	)
 	t := jwt.Token{
 		Header: map[string]interface{}{
 			"typ": "JWT",
 			"alg": method.Alg(),
-			"kid": c.KeyID,
+			"kid": c.keyID,
 		},
 		Claims: jwt.StandardClaims{
-			Issuer:    c.Issuer,
+			Issuer:    c.issuer,
 			IssuedAt:  issued,
-			Audience:  c.Audience,
+			Audience:  c.audience,
 			ExpiresAt: expire,
 		},
 		Method: method,
 	}
-	s, err := t.SignedString(c.Key)
+	s, err := t.SignedString(c.key)
 	if err != nil {
 		panic(fmt.Sprintf("iam: could not sign jwt token: %v", err))
 	}
