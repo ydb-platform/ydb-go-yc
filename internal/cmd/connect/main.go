@@ -11,9 +11,9 @@ import (
 func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	db, err := ydb.New(
+	db, err := ydb.Open(
 		ctx,
-		ydb.WithConnectionString("grpcs://ydb.serverless.yandexcloud.net:2135/?database=/ru-central1/b1g8skpblkos03malf3s/etnaeujopcre7mubi9lj"),
+		"grpcs://ydb.serverless.yandexcloud.net:2135/?database=/ru-central1/b1g8skpblkos03malf3s/etnaeujopcre7mubi9lj",
 		// or define directly endpoint and database
 		//ydb.WithEndpoint("ydb.serverless.yandexcloud.net:2135"),
 		//ydb.WithDatabase("/ru-central1/b1g8skpblkos03malf3s/etnaeujopcre7mubi9lj"),
