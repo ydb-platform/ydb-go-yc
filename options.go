@@ -16,23 +16,23 @@ import (
 
 type ClientOption auth.ClientOption
 
-func NewInstanceServiceAccount(ctx context.Context) credentials.Credentials {
-	return yc.NewInstanceServiceAccount(ctx)
+func NewInstanceServiceAccount() *yc.InstanceServiceAccountCredentials {
+	return yc.NewInstanceServiceAccount()
 }
 
-func NewInstanceServiceAccountURL(ctx context.Context, url string) credentials.Credentials {
-	return yc.NewInstanceServiceAccount(ctx, yc.WithURL(url))
+func NewInstanceServiceAccountURL(url string) *yc.InstanceServiceAccountCredentials {
+	return yc.NewInstanceServiceAccount(yc.WithURL(url))
 }
 
-func WithMetadataCredentialsURL(ctx context.Context, url string) ydb.Option {
+func WithMetadataCredentialsURL(url string) ydb.Option {
 	return ydb.WithCredentials(
-		NewInstanceServiceAccountURL(ctx, url),
+		NewInstanceServiceAccountURL(url),
 	)
 }
 
-func WithMetadataCredentials(ctx context.Context) ydb.Option {
+func WithMetadataCredentials() ydb.Option {
 	return ydb.WithCredentials(
-		NewInstanceServiceAccount(ctx),
+		NewInstanceServiceAccount(),
 	)
 }
 
