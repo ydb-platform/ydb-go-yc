@@ -216,6 +216,7 @@ func WithServiceFile(path string) ClientOption {
 			ID               string `json:"id"`
 			ServiceAccountID string `json:"service_account_id"`
 			PrivateKey       string `json:"private_key"`
+			Endpoint         string `json:"endpoint,omitempty"`
 		}
 		var info keyFile
 		if err = json.Unmarshal(data, &info); err != nil {
@@ -232,6 +233,9 @@ func WithServiceFile(path string) ClientOption {
 		c.key = key
 		c.keyID = info.ID
 		c.issuer = info.ServiceAccountID
+		if info.Endpoint != "" {
+			c.endpoint = info.Endpoint
+		}
 		return nil
 	}
 }
