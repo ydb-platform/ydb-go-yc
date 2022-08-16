@@ -36,19 +36,19 @@ var (
 	ErrEndpointRequired   = errors.New("iam: endpoint required")
 )
 
-// CreateTokenError contains reason of token creation failure.
-type CreateTokenError struct {
-	Cause  error
-	Reason string
+// createTokenError contains reason of token creation failure.
+type createTokenError struct {
+	сause  error
+	reason string
 }
 
 // Error implements error interface.
-func (e *CreateTokenError) Error() string {
-	return fmt.Sprintf("iam: create token error: %s", e.Reason)
+func (e *createTokenError) Error() string {
+	return fmt.Sprintf("iam: create token error: %s", e.reason)
 }
 
-func (e *CreateTokenError) Unwrap() error {
-	return e.Cause
+func (e *createTokenError) Unwrap() error {
+	return e.сause
 }
 
 type transport interface {
@@ -372,9 +372,9 @@ func (c *client) Token(ctx context.Context) (token string, err error) {
 	var expires time.Time
 	token, expires, err = c.transport.CreateToken(ctx, c.jwt(now))
 	if err != nil {
-		return "", &CreateTokenError{
-			Cause:  err,
-			Reason: err.Error(),
+		return "", &createTokenError{
+			сause:  err,
+			reason: err.Error(),
 		}
 	}
 	c.token = token
