@@ -45,6 +45,15 @@ func WithServiceAccountKeyFileCredentials(serviceAccountKeyFile string, opts ...
 	)
 }
 
+func WithServiceAccountKeyCredentials(serviceAccountKey string, opts ...ClientOption) ydb.Option {
+	return WithAuthClientCredentials(
+		append(
+			[]ClientOption{ClientOption(auth.WithServiceKey(serviceAccountKey))},
+			opts...,
+		)...,
+	)
+}
+
 func WithAuthClientCredentials(opts ...ClientOption) ydb.Option {
 	return ydb.WithCreateCredentialsFunc(func(ctx context.Context) (credentials.Credentials, error) {
 		options := make([]auth.ClientOption, 0, len(opts))

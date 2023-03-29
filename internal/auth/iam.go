@@ -212,32 +212,52 @@ func WithServiceFile(path string) ClientOption {
 		if err != nil {
 			return err
 		}
-		type keyFile struct {
-			ID               string `json:"id"`
-			ServiceAccountID string `json:"service_account_id"`
-			PrivateKey       string `json:"private_key"`
-			Endpoint         string `json:"endpoint,omitempty"`
-		}
-		var info keyFile
-		if err = json.Unmarshal(data, &info); err != nil {
-			return err
-		}
-		if info.ID == "" || info.ServiceAccountID == "" || info.PrivateKey == "" {
-			return ErrServiceFileInvalid
-		}
 
-		key, err := parsePrivateKey([]byte(info.PrivateKey))
-		if err != nil {
-			return err
-		}
-		c.key = key
-		c.keyID = info.ID
-		c.issuer = info.ServiceAccountID
-		if info.Endpoint != "" {
-			c.endpoint = info.Endpoint
-		}
-		return nil
+		return makeClientOptinos(c, data)
 	}
+}
+
+// WithServiceKey try set key, keyID, issuer from provided service account data key.
+//
+// Do not mix this option with WithKeyID, WithIssuer and key options (WithPrivateKey, WithPrivateKeyFile, etc).
+func WithServiceKey(key string) ClientOption {
+	return func(c *client) error {
+		data := []byte(key)
+
+		return makeClientOptinos(c, data)
+	}
+}
+
+// makeClientOptinos set key, keyID, issuer from provided service account data key, or form service account file path.
+//
+//	Do not mix this option with WithKeyID, WithIssuer and key options (WithPrivateKey, WithPrivateKeyFile, etc).
+func makeClientOptinos(c *client, data []byte) error {
+	type keyFile struct {
+		ID               string `json:"id"`
+		ServiceAccountID string `json:"service_account_id"`
+		PrivateKey       string `json:"private_key"`
+		Endpoint         string `json:"endpoint,omitempty"`
+	}
+	var info keyFile
+	if err := json.Unmarshal(data, &info); err != nil {
+		return err
+	}
+	if info.ID == "" || info.ServiceAccountID == "" || info.PrivateKey == "" {
+		return ErrServiceFileInvalid
+	}
+
+	key, err := parsePrivateKey([]byte(info.PrivateKey))
+	if err != nil {
+		return err
+	}
+	c.key = key
+	c.keyID = info.ID
+	c.issuer = info.ServiceAccountID
+	if info.Endpoint != "" {
+		c.endpoint = info.Endpoint
+	}
+
+	return nil
 }
 
 // NewClient creates IAM (jwt) authorized client from provided ClientOptions list.
