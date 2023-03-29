@@ -213,7 +213,7 @@ func WithServiceFile(path string) ClientOption {
 			return err
 		}
 
-		return makeClientOptinos(c, data)
+		return makeClientOptions(c, data)
 	}
 }
 
@@ -221,17 +221,13 @@ func WithServiceFile(path string) ClientOption {
 //
 // Do not mix this option with WithKeyID, WithIssuer and key options (WithPrivateKey, WithPrivateKeyFile, etc).
 func WithServiceKey(key string) ClientOption {
-	return func(c *client) error {
-		data := []byte(key)
-
-		return makeClientOptinos(c, data)
-	}
+	return func(c *client) error { return makeClientOptions(c, []byte(key)) }
 }
 
-// makeClientOptinos set key, keyID, issuer from provided service account data key, or form service account file path.
+// makeClientOptions set key, keyID, issuer from provided service account data key, or form service account file path.
 //
 //	Do not mix this option with WithKeyID, WithIssuer and key options (WithPrivateKey, WithPrivateKeyFile, etc).
-func makeClientOptinos(c *client, data []byte) error {
+func makeClientOptions(c *client, data []byte) error {
 	type keyFile struct {
 		ID               string `json:"id"`
 		ServiceAccountID string `json:"service_account_id"`
