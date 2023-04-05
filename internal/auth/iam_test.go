@@ -8,8 +8,7 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt"
-
-	"github.com/ydb-platform/ydb-go-sdk/v3/testutil/timeutil"
+	"github.com/jonboulle/clockwork"
 )
 
 type TransportFunc func(context.Context, string) (string, time.Time, error)
@@ -25,18 +24,18 @@ func TestClientToken(t *testing.T) {
 		audience = "audience"
 		endpoint = "endpoint"
 
-		ttl = time.Minute
+		ttl = 12 * time.Hour
 	)
+	fakeTime := clockwork.NewFakeClock()
+
 	key, err := rsa.GenerateKey(rand.Reader, 4096)
 	if err != nil {
 		t.Error(err)
 	}
 
 	prevTimeFunc := jwt.TimeFunc
-	jwt.TimeFunc = timeutil.Now
-	shiftTime, cleanup := timeutil.StubTestHookTimeNow(time.Unix(10, 0))
+	jwt.TimeFunc = fakeTime.Now
 	defer func() {
-		cleanup()
 		jwt.TimeFunc = prevTimeFunc
 	}()
 
@@ -53,6 +52,7 @@ func TestClientToken(t *testing.T) {
 		}
 	)
 	c := client{
+		clock:    fakeTime,
 		endpoint: endpoint,
 		key:      key,
 		keyID:    keyID,
@@ -80,7 +80,7 @@ func TestClientToken(t *testing.T) {
 
 			// Get the "now" moment. Note that this is the same as for sourceInfo –
 			// we stubbed time above.
-			now := timeutil.Now()
+			now := fakeTime.Now()
 
 			iat := now.UTC().Unix()
 			exp := now.UTC().Add(ttl).Unix()
@@ -116,6 +116,7 @@ func TestClientToken(t *testing.T) {
 			t.Fatal(err)
 		}
 		if act, exp := t1, results[expResult].token; act != exp {
+			t.Helper()
 			t.Errorf(
 				"#%d Token(): unexpected token: %v; want %v",
 				attempt, act, exp,
@@ -126,16 +127,16 @@ func TestClientToken(t *testing.T) {
 
 	getToken(0)
 
-	shiftTime(time.Second)
+	fakeTime.Advance(time.Second)
 	getToken(0)
 
-	shiftTime(ttl) // time.Minute
+	fakeTime.Advance(ttl) // time.Minute
 	getToken(1)
 
 	// Now server respond with time.Second expiration time.
 	// Thus we expect Token() request server again after second, not after
 	// ttl (which is time.Minute).
-	shiftTime(time.Second)
+	fakeTime.Advance(time.Second)
 	getToken(2)
 }
 

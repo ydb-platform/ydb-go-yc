@@ -19,8 +19,8 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt"
+	"github.com/jonboulle/clockwork"
 	"github.com/ydb-platform/ydb-go-sdk/v3/credentials"
-	"github.com/ydb-platform/ydb-go-sdk/v3/testutil/timeutil"
 )
 
 // Default client parameters.
@@ -275,6 +275,7 @@ func NewClient(opts ...ClientOption) (_ credentials.Credentials, err error) {
 		insecureSkipVerify: true,
 		tokenTTL:           DefaultTokenTTL,
 		audience:           DefaultAudience,
+		clock:              clockwork.NewRealClock(),
 	}
 
 	for _, opt := range opts {
@@ -332,6 +333,8 @@ type client struct {
 	sourceInfo string
 
 	fallback credentials.Credentials
+
+	clock clockwork.Clock
 }
 
 func (c *client) init() (err error) {
@@ -379,7 +382,7 @@ func (c *client) Token(ctx context.Context) (token string, err error) {
 	if token != "" {
 		return token, nil
 	}
-	now := timeutil.Now()
+	now := c.clock.Now()
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	if !c.expired() {
@@ -394,15 +397,12 @@ func (c *client) Token(ctx context.Context) (token string, err error) {
 		}
 	}
 	c.token = token
-	c.expires = now.Add(c.tokenTTL)
-	if expires.Before(c.expires) {
-		c.expires = expires
-	}
+	c.expires = now.Add(expires.Sub(now) / 2)
 	return token, nil
 }
 
 func (c *client) expired() bool {
-	return c.expires.Sub(timeutil.Now()) <= 0
+	return c.clock.Since(c.expires) > 0
 }
 
 // By default Go RSA PSS uses PSSSaltLengthAuto, but RFC states that salt size
