@@ -9,8 +9,8 @@ import (
 
 	"github.com/ydb-platform/ydb-go-sdk/v3"
 	"github.com/ydb-platform/ydb-go-sdk/v3/credentials"
-	"github.com/ydb-platform/ydb-go-yc-metadata"
 
+	yc "github.com/ydb-platform/ydb-go-yc-metadata"
 	"github.com/ydb-platform/ydb-go-yc/internal/auth"
 )
 
@@ -60,11 +60,11 @@ func WithAuthClientCredentials(opts ...ClientOption) ydb.Option {
 		for _, option := range opts {
 			options = append(options, auth.ClientOption(option))
 		}
-		credentials, err := auth.NewClient(options...)
+		c, err := auth.NewClient(options...)
 		if err != nil {
 			return nil, fmt.Errorf("credentials configure error: %w", err)
 		}
-		return credentials, nil
+		return c, nil
 	})
 }
 
