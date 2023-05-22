@@ -1,8 +1,15 @@
 # ydb-go-yc
 
-> helpers to connect to YDB inside yandex-cloud 
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://github.com/ydb-platform/ydb/blob/main/LICENSE)
+[![PkgGoDev](https://pkg.go.dev/badge/github.com/ydb-platform/ydb-go-yc)](https://pkg.go.dev/github.com/ydb-platform/ydb-go-yc)
+![tests](https://github.com/ydb-platform/ydb-go-yc/workflows/tests/badge.svg?branch=master)
+![lint](https://github.com/ydb-platform/ydb-go-yc/workflows/lint/badge.svg?branch=master)
+[![Go Report Card](https://goreportcard.com/badge/github.com/ydb-platform/ydb-go-yc)](https://goreportcard.com/report/github.com/ydb-platform/ydb-go-yc)
+[![codecov](https://codecov.io/gh/ydb-platform/ydb-go-yc/badge.svg?precision=2)](https://app.codecov.io/gh/ydb-platform/ydb-go-yc)
+![Code lines](https://sloc.xyz/github/ydb-platform/ydb-go-yc/?category=code)
+[![WebSite](https://img.shields.io/badge/website-ydb.tech-blue.svg)](https://ydb.tech)
 
-[godoc](https://godoc.org/github.com/ydb-platform/ydb-go-yc/)
+Helpers to connect to YDB inside yandex-cloud.
 
 ## Table of contents
 1. [Overview](#Overview)
