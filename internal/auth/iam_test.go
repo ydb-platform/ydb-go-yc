@@ -7,8 +7,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/golang-jwt/jwt"
+	"github.com/golang-jwt/jwt/v4"
 	"github.com/jonboulle/clockwork"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 type TransportFunc func(context.Context, string) (string, time.Time, error)
@@ -29,9 +31,7 @@ func TestClientToken(t *testing.T) {
 	fakeTime := clockwork.NewFakeClock()
 
 	key, err := rsa.GenerateKey(rand.Reader, 4096)
-	if err != nil {
-		t.Error(err)
-	}
+	assert.NoError(t, err)
 
 	prevTimeFunc := jwt.TimeFunc
 	jwt.TimeFunc = fakeTime.Now
@@ -62,47 +62,35 @@ func TestClientToken(t *testing.T) {
 		tokenTTL: ttl,
 
 		// Stub the real transport logic to check jwt token for correctness.
-		transport: TransportFunc(func(ctx context.Context, jwts string) (
+		transport: TransportFunc(func(ctx context.Context, jwtString string) (
 			string, time.Time, error,
 		) {
-			var claims jwt.StandardClaims
+			var claims jwt.RegisteredClaims
 			keyFunc := func(t *jwt.Token) (interface{}, error) {
 				// Use the public part of our key as IAM service will.
 				return key.Public(), nil
 			}
-			token, err := jwt.ParseWithClaims(jwts, &claims, keyFunc)
-			if err != nil {
-				t.Errorf("parse token error: %v", err)
-			}
-			if act, exp := token.Header["kid"], keyID; act != exp {
-				t.Errorf("unexpected \"kid\" header: %+q; want %+q", act, exp)
-			}
+			token, err := jwt.ParseWithClaims(jwtString, &claims, keyFunc)
+			assert.NoError(t, err, "parse token error")
+			assert.Equal(t, keyID, token.Header["kid"], `unexpected "kid" header`)
 
 			// Get the "now" moment. Note that this is the same as for sourceInfo –
 			// we stubbed time above.
 			now := fakeTime.Now()
 
-			iat := now.UTC().Unix()
-			exp := now.UTC().Add(ttl).Unix()
+			iat := jwt.NewNumericDate(now.Local())
+			exp := jwt.NewNumericDate(now.Add(ttl).Local())
 
-			if act, exp := claims.Issuer, issuer; act != exp {
-				t.Errorf("unexpected claims.issuer field: %+q; want %+q", act, exp)
-			}
-			if act, exp := claims.Audience, audience; act != exp {
-				t.Errorf("unexpected claims.audience field: %+q; want %+q", act, exp)
-			}
-			if act, exp := claims.IssuedAt, iat; act != exp {
-				t.Errorf("unexpected claims.IssuedAt field: %+q; want %+q", act, exp)
-			}
-			if act, exp := claims.ExpiresAt, exp; act != exp {
-				t.Errorf("unexpected claims.ExpiresAt field: %+q; want %+q", act, exp)
-			}
+			assert.Equal(t, issuer, claims.Issuer, "unexpected claims.issuer field")
+			assert.Contains(t, claims.Audience, audience, "unexpected claims.audience field")
+			assert.Equal(t, iat, claims.IssuedAt, "unexpected claims.IssuedAt field")
+			assert.Equal(t, exp, claims.ExpiresAt, "unexpected claims.ExpiresAt field")
 
-			t := results[i].token
+			tokenString := results[i].token
 			e := results[i].expires
 			i++
 
-			return t, now.Add(e), nil
+			return tokenString, now.Add(e), nil
 		}),
 	}
 
@@ -112,16 +100,8 @@ func TestClientToken(t *testing.T) {
 	var attempt int
 	getToken := func(expResult int) {
 		t1, err := c.Token(ctx)
-		if err != nil {
-			t.Fatal(err)
-		}
-		if act, exp := t1, results[expResult].token; act != exp {
-			t.Helper()
-			t.Errorf(
-				"#%d Token(): unexpected token: %v; want %v",
-				attempt, act, exp,
-			)
-		}
+		require.NoError(t, err)
+		assert.Equal(t, results[expResult].token, t1, " %d Token(): unexpected token", attempt)
 		attempt++
 	}
 
@@ -134,7 +114,7 @@ func TestClientToken(t *testing.T) {
 	getToken(1)
 
 	// Now server respond with time.Second expiration time.
-	// Thus we expect Token() request server again after second, not after
+	// Thus, we expect Token() request server again after second, not after
 	// ttl (which is time.Minute).
 	fakeTime.Advance(time.Second)
 	getToken(2)
@@ -150,9 +130,7 @@ func TestOptionsConfig(t *testing.T) {
 		ttl = time.Minute
 	)
 	key, err := rsa.GenerateKey(rand.Reader, 4096)
-	if err != nil {
-		t.Error(err)
-	}
+	assert.NoError(t, err)
 
 	c, err := NewClient(
 		WithKeyID(keyID),
@@ -162,17 +140,14 @@ func TestOptionsConfig(t *testing.T) {
 		WithTokenTTL(ttl),
 		WithPrivateKey(key),
 	)
-	if err != nil {
-		t.Error(err)
-	}
-	if cl, ok := c.(*client); !ok ||
-		cl.keyID != keyID ||
-		cl.issuer != issuer ||
-		cl.audience != audience ||
-		cl.endpoint != endpoint ||
-		cl.tokenTTL != ttl ||
-		cl.key != key {
-		t.Error("client object doesn't match")
-	}
+	assert.NoError(t, err)
 
+	cl, ok := c.(*client)
+	if assert.True(t, ok) {
+		assert.Equal(t, keyID, cl.keyID)
+		assert.Equal(t, issuer, cl.issuer)
+		assert.Equal(t, audience, cl.audience)
+		assert.Equal(t, endpoint, cl.endpoint)
+		assert.Equal(t, ttl, cl.tokenTTL)
+	}
 }

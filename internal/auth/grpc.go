@@ -6,11 +6,10 @@ import (
 	"crypto/x509"
 	"time"
 
+	v1 "github.com/yandex-cloud/go-genproto/yandex/cloud/iam/v1"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
-
-	v1 "github.com/yandex-cloud/go-genproto/yandex/cloud/iam/v1"
 )
 
 type grpcTransport struct {
@@ -58,6 +57,7 @@ func (t *grpcTransport) conn(ctx context.Context) (*grpc.ClientConn, error) {
 		opts = []grpc.DialOption{
 			grpc.WithTransportCredentials(
 				credentials.NewTLS(&tls.Config{
+					//nolint: gosec
 					InsecureSkipVerify: true,
 				}),
 			),
