@@ -1,6 +1,4 @@
-/*
-Package iam provides interface for retrieving and caching iam tokens.
-*/
+// Package auth provides interface for retrieving and caching iam tokens.
 package auth
 
 import (
@@ -11,14 +9,13 @@ import (
 	"encoding/pem"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"os/user"
 	"path/filepath"
 	"sync"
 	"time"
 
-	"github.com/golang-jwt/jwt"
+	"github.com/golang-jwt/jwt/v4"
 	"github.com/jonboulle/clockwork"
 	"github.com/ydb-platform/ydb-go-sdk/v3/credentials"
 )
@@ -33,12 +30,11 @@ const (
 var (
 	ErrServiceFileInvalid = errors.New("service account file is not valid")
 	ErrKeyCannotBeParsed  = errors.New("private key can not be parsed")
-	ErrEndpointRequired   = errors.New("iam: endpoint required")
 )
 
 // createTokenError contains reason of token creation failure.
 type createTokenError struct {
-	сause  error
+	cause  error
 	reason string
 }
 
@@ -48,7 +44,7 @@ func (e *createTokenError) Error() string {
 }
 
 func (e *createTokenError) Unwrap() error {
-	return e.сause
+	return e.cause
 }
 
 type transport interface {
@@ -183,7 +179,7 @@ func WithPrivateKey(key *rsa.PrivateKey) ClientOption {
 // WithPrivateKeyFile try set key from provided private key file path
 func WithPrivateKeyFile(path string) ClientOption {
 	return func(c *client) error {
-		data, err := ioutil.ReadFile(path)
+		data, err := os.ReadFile(path)
 		if err != nil {
 			return err
 		}
@@ -224,7 +220,8 @@ func WithServiceKey(key string) ClientOption {
 	return func(c *client) error { return parseAndApplyServiceAccountKeyData(c, []byte(key)) }
 }
 
-// parseAndApplyServiceAccountKeyData set key, keyID, issuer from provided service account data key, or form service account file path.
+// parseAndApplyServiceAccountKeyData set key, keyID, issuer from provided service account data key,
+// or form service account file path.
 //
 //	Do not mix this option with WithKeyID, WithIssuer and key options (WithPrivateKey, WithPrivateKeyFile, etc).
 func parseAndApplyServiceAccountKeyData(c *client, data []byte) error {
@@ -389,10 +386,14 @@ func (c *client) Token(ctx context.Context) (token string, err error) {
 		return c.token, nil
 	}
 	var expires time.Time
-	token, expires, err = c.transport.CreateToken(ctx, c.jwt(now))
+	jwtToken, err := c.jwt(now)
+	if err != nil {
+		return c.token, err
+	}
+	token, expires, err = c.transport.CreateToken(ctx, jwtToken)
 	if err != nil {
 		return "", &createTokenError{
-			сause:  err,
+			cause:  err,
 			reason: err.Error(),
 		}
 	}
@@ -405,7 +406,7 @@ func (c *client) expired() bool {
 	return c.clock.Since(c.expires) > 0
 }
 
-// By default Go RSA PSS uses PSSSaltLengthAuto, but RFC states that salt size
+// By default, Go RSA PSS uses PSSSaltLengthAuto, but RFC states that salt size
 // must be equal to hash size.
 //
 // See https://tools.ietf.org/html/rfc7518#section-3.5
@@ -416,10 +417,10 @@ var ps256WithSaltLengthEqualsHash = &jwt.SigningMethodRSAPSS{
 	},
 }
 
-func (c *client) jwt(now time.Time) string {
+func (c *client) jwt(now time.Time) (string, error) {
 	var (
-		issued = now.UTC().Unix()
-		expire = now.Add(c.tokenTTL).UTC().Unix()
+		issued = jwt.NewNumericDate(now.UTC())
+		expire = jwt.NewNumericDate(now.Add(c.tokenTTL).UTC())
 		method = ps256WithSaltLengthEqualsHash
 	)
 	t := jwt.Token{
@@ -428,19 +429,19 @@ func (c *client) jwt(now time.Time) string {
 			"alg": method.Alg(),
 			"kid": c.keyID,
 		},
-		Claims: jwt.StandardClaims{
+		Claims: jwt.RegisteredClaims{
 			Issuer:    c.issuer,
 			IssuedAt:  issued,
-			Audience:  c.audience,
+			Audience:  []string{c.audience},
 			ExpiresAt: expire,
 		},
 		Method: method,
 	}
 	s, err := t.SignedString(c.key)
 	if err != nil {
-		panic(fmt.Sprintf("iam: could not sign jwt token: %v", err))
+		return "", fmt.Errorf("iam: could not sign jwt token: %w", err)
 	}
-	return s
+	return s, nil
 }
 
 func parsePrivateKey(raw []byte) (*rsa.PrivateKey, error) {

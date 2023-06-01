@@ -7,10 +7,9 @@ import (
 	"testing"
 	"time"
 
+	v1 "github.com/yandex-cloud/go-genproto/yandex/cloud/iam/v1"
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/types/known/timestamppb"
-
-	v1 "github.com/yandex-cloud/go-genproto/yandex/cloud/iam/v1"
 )
 
 func TestGRPCCreateToken(t *testing.T) {
@@ -34,8 +33,8 @@ func TestGRPCCreateToken(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer func() {
-		if err := stop(); err != nil {
-			t.Fatalf("stop failed: %v", err)
+		if stopErr := stop(); stopErr != nil {
+			t.Fatalf("stop failed: %v", stopErr)
 		}
 	}()
 
@@ -60,7 +59,8 @@ func TestGRPCCreateToken(t *testing.T) {
 
 type StubTokenService struct {
 	OnCreate                  func(context.Context, *v1.CreateIamTokenRequest) (*v1.CreateIamTokenResponse, error)
-	OnCreateForServiceAccount func(ctx context.Context, req *v1.CreateIamTokenForServiceAccountRequest) (*v1.CreateIamTokenResponse, error)
+	OnCreateForServiceAccount func(ctx context.Context, req *v1.CreateIamTokenForServiceAccountRequest) (
+		*v1.CreateIamTokenResponse, error)
 }
 
 func (s *StubTokenService) ListenAndServe() (
@@ -85,14 +85,19 @@ func (s *StubTokenService) ListenAndServe() (
 	}, nil
 }
 
-func (s StubTokenService) Create(ctx context.Context, req *v1.CreateIamTokenRequest) (res *v1.CreateIamTokenResponse, err error) {
+func (s *StubTokenService) Create(ctx context.Context, req *v1.CreateIamTokenRequest) (
+	res *v1.CreateIamTokenResponse, err error,
+) {
 	if f := s.OnCreate; f != nil {
 		return f(ctx, req)
 	}
 	return nil, fmt.Errorf("stub: not implemented")
 }
 
-func (s StubTokenService) CreateForServiceAccount(ctx context.Context, req *v1.CreateIamTokenForServiceAccountRequest) (*v1.CreateIamTokenResponse, error) {
+func (s *StubTokenService) CreateForServiceAccount(ctx context.Context,
+	req *v1.CreateIamTokenForServiceAccountRequest) (
+	*v1.CreateIamTokenResponse, error,
+) {
 	if f := s.OnCreateForServiceAccount; f != nil {
 		return f(ctx, req)
 	}

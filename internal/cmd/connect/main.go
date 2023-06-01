@@ -5,7 +5,8 @@ import (
 	"os"
 
 	"github.com/ydb-platform/ydb-go-sdk/v3"
-	"github.com/ydb-platform/ydb-go-yc"
+
+	yc "github.com/ydb-platform/ydb-go-yc"
 )
 
 func main() {
@@ -18,12 +19,12 @@ func main() {
 		// credentials to access YDB outside yandex-cloud
 		yc.WithServiceAccountKeyFileCredentials(os.Getenv("YDB_SERVICE_ACCOUNT_KEY_FILE_CREDENTIALS")),
 		// credentials to access YDB inside yandex-cloud (yandex function, yandex cloud virtual machine)
-		//yc.WithMetadataCredentials(ctx),
+		// yc.WithMetadataCredentials(ctx),
 
 		// certificates for access to yandex-cloud
 		yc.WithInternalCA(),
 		// or append certificates from file directly
-		//ydb.WithCertificatesFromFile(os.Getenv("YDB_SSL_ROOT_CERTIFICATES_FILE")),
+		// ydb.WithCertificatesFromFile(os.Getenv("YDB_SSL_ROOT_CERTIFICATES_FILE")),
 	)
 	if err != nil {
 		panic(err)
