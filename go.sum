@@ -764,14 +764,14 @@ github.com/stretchr/testify v1.8.3 h1:RP3t2pwF7cMEbC1dqtB6poj3niw/9gnV4Cjg5oW5gt
 github.com/stretchr/testify v1.8.3/go.mod h1:sz/lmYIOXD/1dqDmKjjqLyZ2RngseejIcXlSw2iwfAo=
 github.com/yandex-cloud/go-genproto v0.0.0-20211115083454-9ca41db5ed9e h1:9LPdmD1vqadsDQUva6t2O9MbnyvoOgo8nFNPaOIH5U8=
 github.com/yandex-cloud/go-genproto v0.0.0-20211115083454-9ca41db5ed9e/go.mod h1:HEUYX/p8966tMUHHT+TsS0hF/Ca/NYwqprC5WXSDMfE=
-github.com/ydb-platform/ydb-go-genproto v0.0.0-20220203104745-929cf9c248bc/go.mod h1:cc138nptTn9eKptCQl/grxP6pBKpo/bnXDiOxuVZtps=
+github.com/ydb-platform/ydb-go-genproto v0.0.0-20221215182650-986f9d10542f/go.mod h1:Er+FePu1dNUieD+XTMDduGpQuCPssK5Q4BjF+IIXJ3I=
 github.com/ydb-platform/ydb-go-genproto v0.0.0-20230528143953-42c825ace222 h1:8ddsk8HKBkVPH8w3k81si6SeCVJIAtw8dnw+s3h0ciE=
 github.com/ydb-platform/ydb-go-genproto v0.0.0-20230528143953-42c825ace222/go.mod h1:Er+FePu1dNUieD+XTMDduGpQuCPssK5Q4BjF+IIXJ3I=
-github.com/ydb-platform/ydb-go-sdk/v3 v3.25.3/go.mod h1:PFizF/vJsdAgEwjK3DVSBD52kdmRkWfSIS2q2pA+e88=
+github.com/ydb-platform/ydb-go-sdk/v3 v3.44.0/go.mod h1:oSLwnuilwIpaF5bJJMAofnGgzPJusoI3zWMNb8I+GnM=
 github.com/ydb-platform/ydb-go-sdk/v3 v3.47.3 h1:6LwpXivkQxKYRjSZYj4M+G3J8sDtPPNzo9Shzc64oIo=
 github.com/ydb-platform/ydb-go-sdk/v3 v3.47.3/go.mod h1:bWnOIcUHd7+Sl7DN+yhyY1H/I61z53GczvwJgXMgvj0=
-github.com/ydb-platform/ydb-go-yc-metadata v0.5.2 h1:nMtixUijP0Z7iHJNT9fOL+dbmEzZxqU6Xk87ll7hqXg=
-github.com/ydb-platform/ydb-go-yc-metadata v0.5.2/go.mod h1:82SQ4L3PewiEmFW4oTMc1sfPjODasIYxD/SKGsbK74s=
+github.com/ydb-platform/ydb-go-yc-metadata v0.6.0 h1:/veLO8s+9Phyn7ch01tuH2NeuBj+8os+3BB53x2QZ0A=
+github.com/ydb-platform/ydb-go-yc-metadata v0.6.0/go.mod h1:NW4LXW2WhY2tLAwCBHBuHAwRUVF5lsscaSPjdAFKldc=
 github.com/yuin/goldmark v1.1.25/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
 github.com/yuin/goldmark v1.1.27/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
 github.com/yuin/goldmark v1.1.32/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
@@ -1357,7 +1357,6 @@ google.golang.org/grpc v1.39.1/go.mod h1:PImNr+rS9TWYb2O4/emRugxiyHZ5JyHW5F+RPnD
 google.golang.org/grpc v1.40.0/go.mod h1:ogyxbiOoUXAkP+4+xa6PZSE9DZgIHtSpzjDTB9KAK34=
 google.golang.org/grpc v1.40.1/go.mod h1:ogyxbiOoUXAkP+4+xa6PZSE9DZgIHtSpzjDTB9KAK34=
 google.golang.org/grpc v1.42.0/go.mod h1:k+4IHHFw41K8+bbowsex27ge2rCb65oeWqe4jJ590SU=
-google.golang.org/grpc v1.43.0/go.mod h1:k+4IHHFw41K8+bbowsex27ge2rCb65oeWqe4jJ590SU=
 google.golang.org/grpc v1.44.0/go.mod h1:k+4IHHFw41K8+bbowsex27ge2rCb65oeWqe4jJ590SU=
 google.golang.org/grpc v1.45.0/go.mod h1:lN7owxKUQEqMfSyQikvvk5tf/6zMPsrK+ONuO11+0rQ=
 google.golang.org/grpc v1.46.0/go.mod h1:vN9eftEi1UMyUsIF80+uQXhHjbXYbm0uXoFCACuMGWk=
