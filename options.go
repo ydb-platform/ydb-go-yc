@@ -14,10 +14,12 @@ import (
 	"github.com/ydb-platform/ydb-go-yc/internal/auth"
 )
 
-type ClientOption auth.ClientOption
+type ClientOption = auth.ClientOption
 
-func NewInstanceServiceAccount() *yc.InstanceServiceAccountCredentials {
-	return yc.NewInstanceServiceAccount()
+func NewInstanceServiceAccount(
+	opts ...yc.InstanceServiceAccountCredentialsOption,
+) *yc.InstanceServiceAccountCredentials {
+	return yc.NewInstanceServiceAccount(opts...)
 }
 
 func NewInstanceServiceAccountURL(url string) *yc.InstanceServiceAccountCredentials {
@@ -30,16 +32,16 @@ func WithMetadataCredentialsURL(url string) ydb.Option {
 	)
 }
 
-func WithMetadataCredentials() ydb.Option {
+func WithMetadataCredentials(opts ...yc.InstanceServiceAccountCredentialsOption) ydb.Option {
 	return ydb.WithCredentials(
-		NewInstanceServiceAccount(),
+		NewInstanceServiceAccount(opts...),
 	)
 }
 
 func WithServiceAccountKeyFileCredentials(serviceAccountKeyFile string, opts ...ClientOption) ydb.Option {
 	return WithAuthClientCredentials(
 		append(
-			[]ClientOption{ClientOption(auth.WithServiceFile(serviceAccountKeyFile))},
+			[]ClientOption{auth.WithServiceFile(serviceAccountKeyFile)},
 			opts...,
 		)...,
 	)
@@ -48,7 +50,7 @@ func WithServiceAccountKeyFileCredentials(serviceAccountKeyFile string, opts ...
 func WithServiceAccountKeyCredentials(serviceAccountKey string, opts ...ClientOption) ydb.Option {
 	return WithAuthClientCredentials(
 		append(
-			[]ClientOption{ClientOption(auth.WithServiceKey(serviceAccountKey))},
+			[]ClientOption{auth.WithServiceKey(serviceAccountKey)},
 			opts...,
 		)...,
 	)
@@ -56,11 +58,7 @@ func WithServiceAccountKeyCredentials(serviceAccountKey string, opts ...ClientOp
 
 func WithAuthClientCredentials(opts ...ClientOption) ydb.Option {
 	return ydb.WithCreateCredentialsFunc(func(ctx context.Context) (credentials.Credentials, error) {
-		options := make([]auth.ClientOption, 0, len(opts))
-		for _, option := range opts {
-			options = append(options, auth.ClientOption(option))
-		}
-		c, err := auth.NewClient(options...)
+		c, err := auth.NewClient(opts...)
 		if err != nil {
 			return nil, fmt.Errorf("credentials configure error: %w", err)
 		}
@@ -75,37 +73,37 @@ func WithInternalCA() ydb.Option {
 
 // WithFallbackCredentials makes fallback credentials if primary credentials are failed
 func WithFallbackCredentials(fallback credentials.Credentials) ClientOption {
-	return ClientOption(auth.WithFallbackCredentials(fallback))
+	return auth.WithFallbackCredentials(fallback)
 }
 
 // WithEndpoint set provided endpoint.
 func WithEndpoint(endpoint string) ClientOption {
-	return ClientOption(auth.WithEndpoint(endpoint))
+	return auth.WithEndpoint(endpoint)
 }
 
 // WithDefaultEndpoint set endpoint with default value.
 func WithDefaultEndpoint() ClientOption {
-	return ClientOption(auth.WithDefaultEndpoint())
+	return auth.WithDefaultEndpoint()
 }
 
 // WithSourceInfo set sourceInfo
 func WithSourceInfo(sourceInfo string) ClientOption {
-	return ClientOption(auth.WithSourceInfo(sourceInfo))
+	return auth.WithSourceInfo(sourceInfo)
 }
 
 // WithCertPool set provided certPool.
 func WithCertPool(certPool *x509.CertPool) ClientOption {
-	return ClientOption(auth.WithCertPool(certPool))
+	return auth.WithCertPool(certPool)
 }
 
 // WithCertPoolFile try set root certPool from provided cert file path.
 func WithCertPoolFile(caFile string) ClientOption {
-	return ClientOption(auth.WithCertPoolFile(caFile))
+	return auth.WithCertPoolFile(caFile)
 }
 
 // WithSystemCertPool try set certPool with system root certificates.
 func WithSystemCertPool() ClientOption {
-	return ClientOption(auth.WithSystemCertPool())
+	return auth.WithSystemCertPool()
 }
 
 // WithInsecureSkipVerify set insecureSkipVerify to true which force client accepts any TLS certificate
@@ -115,42 +113,49 @@ func WithSystemCertPool() ClientOption {
 //
 // This should be used only for testing purposes.
 func WithInsecureSkipVerify(insecure bool) ClientOption {
-	return ClientOption(auth.WithInsecureSkipVerify(insecure))
+	return auth.WithInsecureSkipVerify(insecure)
 }
 
 // WithKeyID set provided keyID.
 func WithKeyID(keyID string) ClientOption {
-	return ClientOption(auth.WithKeyID(keyID))
+	return auth.WithKeyID(keyID)
 }
 
 // WithIssuer set provided issuer.
 func WithIssuer(issuer string) ClientOption {
-	return ClientOption(auth.WithIssuer(issuer))
+	return auth.WithIssuer(issuer)
 }
 
 // WithTokenTTL set provided tokenTTL duration.
 func WithTokenTTL(tokenTTL time.Duration) ClientOption {
-	return ClientOption(auth.WithTokenTTL(tokenTTL))
+	return auth.WithTokenTTL(tokenTTL)
 }
 
 // WithAudience set provided audience.
 func WithAudience(audience string) ClientOption {
-	return ClientOption(auth.WithAudience(audience))
+	return auth.WithAudience(audience)
 }
 
 // WithPrivateKey set provided private key.
 func WithPrivateKey(key *rsa.PrivateKey) ClientOption {
-	return ClientOption(auth.WithPrivateKey(key))
+	return auth.WithPrivateKey(key)
 }
 
 // WithPrivateKeyFile try set key from provided private key file path
 func WithPrivateKeyFile(path string) ClientOption {
-	return ClientOption(auth.WithPrivateKeyFile(path))
+	return auth.WithPrivateKeyFile(path)
 }
 
 // WithServiceFile try set key, keyID, issuer from provided service account file path.
 //
 // Do not mix this option with WithKeyID, WithIssuer and key options (WithPrivateKey, WithPrivateKeyFile, etc).
 func WithServiceFile(path string) ClientOption {
-	return ClientOption(auth.WithServiceFile(path))
+	return auth.WithServiceFile(path)
+}
+
+// WithServiceKey try set key, keyID, issuer from provided service account key.
+//
+// Do not mix this option with WithKeyID, WithIssuer and key options (WithPrivateKey, WithPrivateKeyFile, etc).
+func WithServiceKey(json string) ClientOption {
+	return auth.WithServiceKey(json)
 }
