@@ -15,9 +15,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/golang-jwt/jwt/v4"
-	"github.com/jonboulle/clockwork"
-	"github.com/ydb-platform/ydb-go-sdk/v3/credentials"
+	"github.com/golang-jwt/jwt/v4"                      //nolint:depguard
+	"github.com/jonboulle/clockwork"                    //nolint:depguard
+	"github.com/ydb-platform/ydb-go-sdk/v3/credentials" //nolint:depguard
 )
 
 // Default client parameters.
@@ -32,30 +32,15 @@ var (
 	ErrKeyCannotBeParsed  = errors.New("private key can not be parsed")
 )
 
-// createTokenError contains reason of token creation failure.
-type createTokenError struct {
-	cause  error
-	reason string
-}
-
-// Error implements error interface.
-func (e *createTokenError) Error() string {
-	return fmt.Sprintf("iam: create token error: %s", e.reason)
-}
-
-func (e *createTokenError) Unwrap() error {
-	return e.cause
-}
-
 type transport interface {
 	CreateToken(ctx context.Context, jwt string) (token string, expires time.Time, err error)
 }
 
-type ClientOption func(*client) error
+type ClientOption func(*Client) error
 
 // WithFallbackCredentials makes fallback credentials if primary credentials are failed
 func WithFallbackCredentials(fallback credentials.Credentials) ClientOption {
-	return func(c *client) error {
+	return func(c *Client) error {
 		c.fallback = fallback
 		return nil
 	}
@@ -63,7 +48,7 @@ func WithFallbackCredentials(fallback credentials.Credentials) ClientOption {
 
 // WithEndpoint set provided endpoint.
 func WithEndpoint(endpoint string) ClientOption {
-	return func(c *client) error {
+	return func(c *Client) error {
 		c.endpoint = endpoint
 		return nil
 	}
@@ -71,7 +56,7 @@ func WithEndpoint(endpoint string) ClientOption {
 
 // WithDefaultEndpoint set endpoint with default value.
 func WithDefaultEndpoint() ClientOption {
-	return func(c *client) error {
+	return func(c *Client) error {
 		c.endpoint = DefaultEndpoint
 		return nil
 	}
@@ -79,7 +64,7 @@ func WithDefaultEndpoint() ClientOption {
 
 // WithSourceInfo set sourceInfo
 func WithSourceInfo(sourceInfo string) ClientOption {
-	return func(c *client) error {
+	return func(c *Client) error {
 		c.sourceInfo = sourceInfo
 		return nil
 	}
@@ -87,7 +72,7 @@ func WithSourceInfo(sourceInfo string) ClientOption {
 
 // WithCertPool set provided certPool.
 func WithCertPool(certPool *x509.CertPool) ClientOption {
-	return func(c *client) error {
+	return func(c *Client) error {
 		c.certPool = certPool
 		return nil
 	}
@@ -95,7 +80,7 @@ func WithCertPool(certPool *x509.CertPool) ClientOption {
 
 // WithCertPoolFile try set root certPool from provided cert file path.
 func WithCertPoolFile(caFile string) ClientOption {
-	return func(c *client) error {
+	return func(c *Client) error {
 		if len(caFile) > 0 && caFile[0] == '~' {
 			usr, err := user.Current()
 			if err != nil {
@@ -116,7 +101,7 @@ func WithCertPoolFile(caFile string) ClientOption {
 
 // WithSystemCertPool try set certPool with system root certificates.
 func WithSystemCertPool() ClientOption {
-	return func(c *client) error {
+	return func(c *Client) error {
 		var err error
 		c.certPool, err = x509.SystemCertPool()
 		return err
@@ -130,7 +115,7 @@ func WithSystemCertPool() ClientOption {
 //
 // This should be used only for testing purposes.
 func WithInsecureSkipVerify(insecure bool) ClientOption {
-	return func(c *client) error {
+	return func(c *Client) error {
 		c.insecureSkipVerify = insecure
 		return nil
 	}
@@ -138,7 +123,7 @@ func WithInsecureSkipVerify(insecure bool) ClientOption {
 
 // WithKeyID set provided keyID.
 func WithKeyID(keyID string) ClientOption {
-	return func(c *client) error {
+	return func(c *Client) error {
 		c.keyID = keyID
 		return nil
 	}
@@ -146,7 +131,7 @@ func WithKeyID(keyID string) ClientOption {
 
 // WithIssuer set provided issuer.
 func WithIssuer(issuer string) ClientOption {
-	return func(c *client) error {
+	return func(c *Client) error {
 		c.issuer = issuer
 		return nil
 	}
@@ -154,7 +139,7 @@ func WithIssuer(issuer string) ClientOption {
 
 // WithTokenTTL set provided tokenTTL duration.
 func WithTokenTTL(tokenTTL time.Duration) ClientOption {
-	return func(c *client) error {
+	return func(c *Client) error {
 		c.tokenTTL = tokenTTL
 		return nil
 	}
@@ -162,7 +147,7 @@ func WithTokenTTL(tokenTTL time.Duration) ClientOption {
 
 // WithAudience set provided audience.
 func WithAudience(audience string) ClientOption {
-	return func(c *client) error {
+	return func(c *Client) error {
 		c.audience = audience
 		return nil
 	}
@@ -170,7 +155,7 @@ func WithAudience(audience string) ClientOption {
 
 // WithPrivateKey set provided private key.
 func WithPrivateKey(key *rsa.PrivateKey) ClientOption {
-	return func(c *client) error {
+	return func(c *Client) error {
 		c.key = key
 		return nil
 	}
@@ -178,7 +163,7 @@ func WithPrivateKey(key *rsa.PrivateKey) ClientOption {
 
 // WithPrivateKeyFile try set key from provided private key file path
 func WithPrivateKeyFile(path string) ClientOption {
-	return func(c *client) error {
+	return func(c *Client) error {
 		data, err := os.ReadFile(path)
 		if err != nil {
 			return err
@@ -196,7 +181,7 @@ func WithPrivateKeyFile(path string) ClientOption {
 //
 // Do not mix this option with WithKeyID, WithIssuer and key options (WithPrivateKey, WithPrivateKeyFile, etc).
 func WithServiceFile(path string) ClientOption {
-	return func(c *client) error {
+	return func(c *Client) error {
 		if len(path) > 0 && path[0] == '~' {
 			home, err := os.UserHomeDir()
 			if err != nil {
@@ -217,14 +202,14 @@ func WithServiceFile(path string) ClientOption {
 //
 // Do not mix this option with WithKeyID, WithIssuer and key options (WithPrivateKey, WithPrivateKeyFile, etc).
 func WithServiceKey(key string) ClientOption {
-	return func(c *client) error { return parseAndApplyServiceAccountKeyData(c, []byte(key)) }
+	return func(c *Client) error { return parseAndApplyServiceAccountKeyData(c, []byte(key)) }
 }
 
 // parseAndApplyServiceAccountKeyData set key, keyID, issuer from provided service account data key,
 // or form service account file path.
 //
 //	Do not mix this option with WithKeyID, WithIssuer and key options (WithPrivateKey, WithPrivateKeyFile, etc).
-func parseAndApplyServiceAccountKeyData(c *client, data []byte) error {
+func parseAndApplyServiceAccountKeyData(c *Client, data []byte) error {
 	type keyFile struct {
 		ID               string `json:"id"`
 		ServiceAccountID string `json:"service_account_id"`
@@ -256,7 +241,7 @@ func parseAndApplyServiceAccountKeyData(c *client, data []byte) error {
 // NewClient creates IAM (jwt) authorized client from provided ClientOptions list.
 //
 // To create successfully at least one of endpoint options must be provided.
-func NewClient(opts ...ClientOption) (_ credentials.Credentials, err error) {
+func NewClient(opts ...ClientOption) (_ *Client, err error) {
 	var (
 		certPool *x509.CertPool
 		issues   []error
@@ -266,7 +251,7 @@ func NewClient(opts ...ClientOption) (_ credentials.Credentials, err error) {
 		certPool = x509.NewCertPool()
 	}
 
-	c := &client{
+	c := &Client{
 		endpoint:           DefaultEndpoint,
 		certPool:           certPool,
 		insecureSkipVerify: true,
@@ -283,10 +268,13 @@ func NewClient(opts ...ClientOption) (_ credentials.Credentials, err error) {
 	}
 
 	if len(issues) > 0 {
+		err = fmt.Errorf("cannot create IAM client: %v", issues)
 		if c.fallback != nil {
-			return c.fallback, nil
+			c.useFallback = true
+			c.clientInitializationError = err
+			return c, nil
 		}
-		return nil, fmt.Errorf("cannot create IAM client: %v", issues)
+		return nil, err
 	}
 
 	c.transport = &grpcTransport{
@@ -295,11 +283,23 @@ func NewClient(opts ...ClientOption) (_ credentials.Credentials, err error) {
 		insecureSkipVerify: c.insecureSkipVerify,
 	}
 
+	if c.endpoint == "" {
+		return nil, fmt.Errorf("iam: endpoint required")
+	}
+
+	if c.transport == nil {
+		c.transport = &grpcTransport{
+			endpoint:           c.endpoint,
+			certPool:           c.certPool,
+			insecureSkipVerify: c.insecureSkipVerify,
+		}
+	}
+
 	return c, nil
 }
 
 // Client contains options for interaction with the iam.
-type client struct {
+type Client struct {
 	endpoint string
 	certPool *x509.CertPool
 
@@ -318,9 +318,7 @@ type client struct {
 	tokenTTL time.Duration
 	audience string
 
-	once    sync.Once
-	mu      sync.RWMutex
-	err     error
+	mu      sync.Mutex
 	token   string
 	expires time.Time
 
@@ -329,35 +327,14 @@ type client struct {
 
 	sourceInfo string
 
-	fallback credentials.Credentials
+	useFallback               bool
+	fallback                  credentials.Credentials
+	clientInitializationError error
 
 	clock clockwork.Clock
 }
 
-func (c *client) init() (err error) {
-	c.once.Do(func() {
-		if c.endpoint == "" {
-			c.err = fmt.Errorf("iam: endpoint required")
-			return
-		}
-		if c.audience == "" {
-			c.audience = DefaultAudience
-		}
-		if c.tokenTTL == 0 {
-			c.tokenTTL = DefaultTokenTTL
-		}
-		if c.transport == nil {
-			c.transport = &grpcTransport{
-				endpoint:           c.endpoint,
-				certPool:           c.certPool,
-				insecureSkipVerify: c.insecureSkipVerify,
-			}
-		}
-	})
-	return c.err
-}
-
-func (c *client) String() string {
+func (c *Client) String() string {
 	if c.sourceInfo == "" {
 		return "iam.Client"
 	}
@@ -367,42 +344,47 @@ func (c *client) String() string {
 // Token returns cached token if no c.tokenTTL time has passed or no token
 // expiration deadline from the last request exceeded. In other way, it makes
 // request for a new one token.
-func (c *client) Token(ctx context.Context) (token string, err error) {
-	if err = c.init(); err != nil {
-		return
-	}
-	c.mu.RLock()
-	if !c.expired() {
-		token = c.token
-	}
-	c.mu.RUnlock()
-	if token != "" {
+func (c *Client) Token(ctx context.Context) (token string, err error) {
+	if c.useFallback {
+		token, err = c.fallback.Token(ctx)
+		if err != nil {
+			return "", fmt.Errorf(
+				"iam client not inittialized (%s), fallback failed: %w",
+				c.clientInitializationError.Error(),
+				err,
+			)
+		}
 		return token, nil
 	}
-	now := c.clock.Now()
+
 	c.mu.Lock()
 	defer c.mu.Unlock()
+
 	if !c.expired() {
 		return c.token, nil
 	}
-	var expires time.Time
+
+	var (
+		expires time.Time
+		now     = c.clock.Now()
+	)
+
 	jwtToken, err := c.jwt(now)
 	if err != nil {
 		return c.token, err
 	}
+
 	token, expires, err = c.transport.CreateToken(ctx, jwtToken)
 	if err != nil {
-		return "", &createTokenError{
-			cause:  err,
-			reason: err.Error(),
-		}
+		return "", err
 	}
-	c.token = token
-	c.expires = now.Add(expires.Sub(now) / 2)
-	return token, nil
+
+	c.token, c.expires = token, now.Add(expires.Sub(now)/2)
+
+	return c.token, nil
 }
 
-func (c *client) expired() bool {
+func (c *Client) expired() bool {
 	return c.clock.Since(c.expires) > 0
 }
 
@@ -417,7 +399,7 @@ var ps256WithSaltLengthEqualsHash = &jwt.SigningMethodRSAPSS{
 	},
 }
 
-func (c *client) jwt(now time.Time) (string, error) {
+func (c *Client) jwt(now time.Time) (string, error) {
 	var (
 		issued = jwt.NewNumericDate(now.UTC())
 		expire = jwt.NewNumericDate(now.Add(c.tokenTTL).UTC())
@@ -451,7 +433,7 @@ func parsePrivateKey(raw []byte) (*rsa.PrivateKey, error) {
 	}
 	key, err := x509.ParsePKCS1PrivateKey(block.Bytes)
 	if err == nil {
-		return key, err
+		return key, nil
 	}
 
 	x, err := x509.ParsePKCS8PrivateKey(block.Bytes)
