@@ -10,5 +10,5 @@ require (
 	github.com/ydb-platform/ydb-go-sdk/v3 v3.47.3
 	github.com/ydb-platform/ydb-go-yc-metadata v0.6.1
 	google.golang.org/grpc v1.55.0
-	google.golang.org/protobuf v1.30.0
+	google.golang.org/protobuf v1.31.0
 )

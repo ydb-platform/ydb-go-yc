@@ -2,11 +2,12 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"os"
 
-	"github.com/ydb-platform/ydb-go-sdk/v3"
+	"github.com/ydb-platform/ydb-go-sdk/v3" //nolint:depguard
 
-	yc "github.com/ydb-platform/ydb-go-yc"
+	yc "github.com/ydb-platform/ydb-go-yc" //nolint:depguard
 )
 
 func main() {
@@ -32,4 +33,9 @@ func main() {
 	defer func() {
 		_ = db.Close(ctx)
 	}()
+	whoAmI, err := db.Discovery().WhoAmI(ctx)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(whoAmI.String())
 }
