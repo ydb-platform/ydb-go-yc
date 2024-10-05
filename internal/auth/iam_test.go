@@ -7,9 +7,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/golang-jwt/jwt/v4"
-	"github.com/jonboulle/clockwork"
-	"github.com/stretchr/testify/assert"
+	"github.com/golang-jwt/jwt/v4"       //nolint:depguard
+	"github.com/jonboulle/clockwork"     //nolint:depguard
+	"github.com/stretchr/testify/assert" //nolint:depguard
 	"github.com/stretchr/testify/require"
 )
 
@@ -51,7 +51,7 @@ func TestClientToken(t *testing.T) {
 			{"baz", 0},
 		}
 	)
-	c := client{
+	c := Client{
 		clock:    fakeTime,
 		endpoint: endpoint,
 		key:      key,
@@ -132,7 +132,7 @@ func TestOptionsConfig(t *testing.T) {
 	key, err := rsa.GenerateKey(rand.Reader, 4096)
 	assert.NoError(t, err)
 
-	c, err := NewClient(
+	client, err := NewClient(
 		WithKeyID(keyID),
 		WithIssuer(issuer),
 		WithAudience(audience),
@@ -140,14 +140,11 @@ func TestOptionsConfig(t *testing.T) {
 		WithTokenTTL(ttl),
 		WithPrivateKey(key),
 	)
-	assert.NoError(t, err)
 
-	cl, ok := c.(*client)
-	if assert.True(t, ok) {
-		assert.Equal(t, keyID, cl.keyID)
-		assert.Equal(t, issuer, cl.issuer)
-		assert.Equal(t, audience, cl.audience)
-		assert.Equal(t, endpoint, cl.endpoint)
-		assert.Equal(t, ttl, cl.tokenTTL)
-	}
+	assert.NoError(t, err)
+	assert.Equal(t, keyID, client.keyID)
+	assert.Equal(t, issuer, client.issuer)
+	assert.Equal(t, audience, client.audience)
+	assert.Equal(t, endpoint, client.endpoint)
+	assert.Equal(t, ttl, client.tokenTTL)
 }

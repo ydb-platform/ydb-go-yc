@@ -6,7 +6,7 @@ import (
 	"crypto/x509"
 	"time"
 
-	v1 "github.com/yandex-cloud/go-genproto/yandex/cloud/iam/v1"
+	v1 "github.com/yandex-cloud/go-genproto/yandex/cloud/iam/v1" //nolint:depguard
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
@@ -20,7 +20,7 @@ type grpcTransport struct {
 }
 
 func (t *grpcTransport) CreateToken(ctx context.Context, jwt string) (
-	token string, expires time.Time, err error,
+	token string, expires time.Time, _ error,
 ) {
 	conn, err := t.conn(ctx)
 	if err != nil {
@@ -30,20 +30,20 @@ func (t *grpcTransport) CreateToken(ctx context.Context, jwt string) (
 		_ = conn.Close()
 	}()
 
-	client := v1.NewIamTokenServiceClient(conn)
-	res, err := client.Create(ctx, &v1.CreateIamTokenRequest{
+	var (
+		iam = v1.NewIamTokenServiceClient(conn)
+		res *v1.CreateIamTokenResponse
+	)
+	res, err = iam.Create(ctx, &v1.CreateIamTokenRequest{
 		Identity: &v1.CreateIamTokenRequest_Jwt{
 			Jwt: jwt,
 		},
 	})
-	if err == nil {
-		token = res.IamToken
-		expires = time.Unix(
-			res.ExpiresAt.Seconds,
-			int64(res.ExpiresAt.Nanos),
-		)
+	if err != nil {
+		return token, expires, err
 	}
-	return
+
+	return res.IamToken, res.ExpiresAt.AsTime(), nil
 }
 
 func (t *grpcTransport) conn(ctx context.Context) (*grpc.ClientConn, error) {

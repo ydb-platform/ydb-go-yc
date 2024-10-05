@@ -7,24 +7,12 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/ydb-platform/ydb-go-sdk/v3"
-	"github.com/ydb-platform/ydb-go-sdk/v3/credentials"
+	"github.com/ydb-platform/ydb-go-sdk/v3"             //nolint:depguard
+	"github.com/ydb-platform/ydb-go-sdk/v3/credentials" //nolint:depguard
+	yc "github.com/ydb-platform/ydb-go-yc-metadata"     //nolint:depguard
 
-	yc "github.com/ydb-platform/ydb-go-yc-metadata"
 	"github.com/ydb-platform/ydb-go-yc/internal/auth"
 )
-
-type ClientOption = auth.ClientOption
-
-func NewInstanceServiceAccount(
-	opts ...yc.InstanceServiceAccountCredentialsOption,
-) *yc.InstanceServiceAccountCredentials {
-	return yc.NewInstanceServiceAccount(opts...)
-}
-
-func NewInstanceServiceAccountURL(url string) *yc.InstanceServiceAccountCredentials {
-	return yc.NewInstanceServiceAccount(yc.WithURL(url))
-}
 
 func WithMetadataCredentialsURL(url string) ydb.Option {
 	return ydb.WithCredentials(
