@@ -30,7 +30,7 @@ func ExampleNebius() {
 		panic(err)
 	}
 	_ = db.Close(context.TODO())
-)
+}
 
 func Example_withMetadataCredentials() {
 	db, err := ydb.Open(context.TODO(), "grpc://localhost:2136/local",
