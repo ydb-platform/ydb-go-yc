@@ -25,6 +25,7 @@ func ExampleNebius() {
 		yc.WithServiceAccountKeyFileCredentials("./nebius/sa.json",
 			yc.WithEndpoint("iam.api.il.nebius.cloud:443"),
 		),
+	)
 	if err != nil {
 		panic(err)
 	}
