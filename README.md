@@ -56,12 +56,10 @@ import (
     yc "github.com/ydb-platform/ydb-go-yc"
 )
 ...
-    db, err := ydb.Open(
-        ctx,
-        os.Getenv("YDB_CONNECTION_STRING"),
+    db, err := ydb.Open(ctx, os.Getenv("YDB_CONNECTION_STRING"),
         yc.WithInternalCA(),
         yc.WithServiceAccountKeyFileCredentials("~/.ydb/sa.json"), // auth from service account key file
-        //yc.WithMetadataCredentials(ctx), // auth inside cloud (virual machine or yandex function)
+        // yc.WithMetadataCredentials(), // auth inside cloud (virual machine or yandex function)
     )
     
 ```
