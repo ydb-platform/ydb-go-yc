@@ -62,6 +62,7 @@ func WithAuthClientCredentials(opts ...ClientOption) ydb.Option {
 		if err != nil {
 			return nil, fmt.Errorf("credentials configure error: %w", err)
 		}
+
 		return c, nil
 	})
 }

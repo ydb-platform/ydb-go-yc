@@ -1,9 +1,13 @@
 name: lint
 on:
   push:
-    branches: [ main ]
+    branches:
+      - master
+      - release-*
   pull_request:
   workflow_dispatch:
+env:
+  GOLANGCI_LINT_VERSION: v2.11.4
 jobs:
   golangci:
     name: golangci-lint
@@ -12,8 +16,9 @@ jobs:
       cancel-in-progress: true
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: golangci-lint
-        uses: golangci/golangci-lint-action@v3
+        uses: golangci/golangci-lint-action@v8
         with:
-          version: latest
+          version: ${{ env.GOLANGCI_LINT_VERSION }}
+          args: --timeout=5m
