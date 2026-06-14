@@ -47,6 +47,10 @@ linters:
     - varnamelen
     - wrapcheck
     - wsl
+    - recvcheck
+    - iface
+    - gosmopolitan
+    - funcorder
 
     # introduced v2.4.0
     - noinlineerr
@@ -162,6 +166,13 @@ linters:
           - unparam
           - unused
         path: internal/cmd
+      - linters:
+          - embeddedstructfieldcheck
+          - funlen
+          - gosmopolitan
+          - nlreturn
+          - noctx
+        path: _test\.go
       - linters:
           - nosnakecase
         text: (?:_[a-z]+(?:[A-Z](?:[a-z\d]+|[A-Z\d]+))+|(?:[A-Z][a-z\d]+|[A-Z][A-Z\d]+)+_(?:(?:[A-Z][a-z\d]+|[A-Z\d][A-Z\d]+)_?)+)

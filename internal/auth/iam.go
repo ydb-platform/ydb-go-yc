@@ -57,6 +57,7 @@ type ClientOption func(*client) error
 func WithFallbackCredentials(fallback credentials.Credentials) ClientOption {
 	return func(c *client) error {
 		c.fallback = fallback
+
 		return nil
 	}
 }
@@ -65,6 +66,7 @@ func WithFallbackCredentials(fallback credentials.Credentials) ClientOption {
 func WithEndpoint(endpoint string) ClientOption {
 	return func(c *client) error {
 		c.endpoint = endpoint
+
 		return nil
 	}
 }
@@ -73,6 +75,7 @@ func WithEndpoint(endpoint string) ClientOption {
 func WithDefaultEndpoint() ClientOption {
 	return func(c *client) error {
 		c.endpoint = DefaultEndpoint
+
 		return nil
 	}
 }
@@ -81,6 +84,7 @@ func WithDefaultEndpoint() ClientOption {
 func WithSourceInfo(sourceInfo string) ClientOption {
 	return func(c *client) error {
 		c.sourceInfo = sourceInfo
+
 		return nil
 	}
 }
@@ -89,6 +93,7 @@ func WithSourceInfo(sourceInfo string) ClientOption {
 func WithCertPool(certPool *x509.CertPool) ClientOption {
 	return func(c *client) error {
 		c.certPool = certPool
+
 		return nil
 	}
 }
@@ -110,6 +115,7 @@ func WithCertPoolFile(caFile string) ClientOption {
 		if !c.certPool.AppendCertsFromPEM(bytes) {
 			return fmt.Errorf("cannot append certificates from file '%s' to certificates pool", caFile)
 		}
+
 		return nil
 	}
 }
@@ -119,6 +125,7 @@ func WithSystemCertPool() ClientOption {
 	return func(c *client) error {
 		var err error
 		c.certPool, err = x509.SystemCertPool()
+
 		return err
 	}
 }
@@ -132,6 +139,7 @@ func WithSystemCertPool() ClientOption {
 func WithInsecureSkipVerify(insecure bool) ClientOption {
 	return func(c *client) error {
 		c.insecureSkipVerify = insecure
+
 		return nil
 	}
 }
@@ -140,6 +148,7 @@ func WithInsecureSkipVerify(insecure bool) ClientOption {
 func WithKeyID(keyID string) ClientOption {
 	return func(c *client) error {
 		c.keyID = keyID
+
 		return nil
 	}
 }
@@ -148,6 +157,7 @@ func WithKeyID(keyID string) ClientOption {
 func WithIssuer(issuer string) ClientOption {
 	return func(c *client) error {
 		c.issuer = issuer
+
 		return nil
 	}
 }
@@ -156,6 +166,7 @@ func WithIssuer(issuer string) ClientOption {
 func WithTokenTTL(tokenTTL time.Duration) ClientOption {
 	return func(c *client) error {
 		c.tokenTTL = tokenTTL
+
 		return nil
 	}
 }
@@ -164,6 +175,7 @@ func WithTokenTTL(tokenTTL time.Duration) ClientOption {
 func WithAudience(audience string) ClientOption {
 	return func(c *client) error {
 		c.audience = audience
+
 		return nil
 	}
 }
@@ -172,6 +184,7 @@ func WithAudience(audience string) ClientOption {
 func WithPrivateKey(key *rsa.PrivateKey) ClientOption {
 	return func(c *client) error {
 		c.key = key
+
 		return nil
 	}
 }
@@ -188,6 +201,7 @@ func WithPrivateKeyFile(path string) ClientOption {
 			return err
 		}
 		c.key = key
+
 		return nil
 	}
 }
@@ -227,8 +241,8 @@ func WithServiceKey(key string) ClientOption {
 func parseAndApplyServiceAccountKeyData(c *client, data []byte) error {
 	type keyFile struct {
 		ID               string `json:"id"`
-		ServiceAccountID string `json:"service_account_id"`
-		PrivateKey       string `json:"private_key"`
+		ServiceAccountID string `json:"service_account_id"` //nolint:tagliatelle // Yandex Cloud SA key JSON format.
+		PrivateKey       string `json:"private_key"`        //nolint:tagliatelle // Yandex Cloud SA key JSON format.
 		Endpoint         string `json:"endpoint,omitempty"`
 	}
 	var info keyFile
@@ -286,6 +300,7 @@ func NewClient(opts ...ClientOption) (_ credentials.Credentials, err error) {
 		if c.fallback != nil {
 			return c.fallback, nil
 		}
+
 		return nil, fmt.Errorf("cannot create IAM client: %v", issues)
 	}
 
@@ -334,10 +349,58 @@ type client struct {
 	clock clockwork.Clock
 }
 
-func (c *client) init() (err error) {
+func (c *client) String() string {
+	if c.sourceInfo == "" {
+		return "iam.Client"
+	}
+
+	return "iam.Client created from " + c.sourceInfo
+}
+
+// Token returns cached token if no c.tokenTTL time has passed or no token
+// expiration deadline from the last request exceeded. In other way, it makes
+// request for a new one token.
+func (c *client) Token(ctx context.Context) (string, error) {
+	if err := c.init(); err != nil {
+		return "", err
+	}
+	c.mu.RLock()
+	token := ""
+	if !c.expired() {
+		token = c.token
+	}
+	c.mu.RUnlock()
+	if token != "" {
+		return token, nil
+	}
+	now := c.clock.Now()
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	if !c.expired() {
+		return c.token, nil
+	}
+	jwtToken, err := c.jwt(now)
+	if err != nil {
+		return c.token, err
+	}
+	token, expires, err := c.transport.CreateToken(ctx, jwtToken)
+	if err != nil {
+		return "", &createTokenError{
+			cause:  err,
+			reason: err.Error(),
+		}
+	}
+	c.token = token
+	c.expires = now.Add(expires.Sub(now) / 2)
+
+	return token, nil
+}
+
+func (c *client) init() error {
 	c.once.Do(func() {
 		if c.endpoint == "" {
 			c.err = fmt.Errorf("iam: endpoint required")
+
 			return
 		}
 		if c.audience == "" {
@@ -354,52 +417,8 @@ func (c *client) init() (err error) {
 			}
 		}
 	})
+
 	return c.err
-}
-
-func (c *client) String() string {
-	if c.sourceInfo == "" {
-		return "iam.Client"
-	}
-	return "iam.Client created from " + c.sourceInfo
-}
-
-// Token returns cached token if no c.tokenTTL time has passed or no token
-// expiration deadline from the last request exceeded. In other way, it makes
-// request for a new one token.
-func (c *client) Token(ctx context.Context) (token string, err error) {
-	if err = c.init(); err != nil {
-		return
-	}
-	c.mu.RLock()
-	if !c.expired() {
-		token = c.token
-	}
-	c.mu.RUnlock()
-	if token != "" {
-		return token, nil
-	}
-	now := c.clock.Now()
-	c.mu.Lock()
-	defer c.mu.Unlock()
-	if !c.expired() {
-		return c.token, nil
-	}
-	var expires time.Time
-	jwtToken, err := c.jwt(now)
-	if err != nil {
-		return c.token, err
-	}
-	token, expires, err = c.transport.CreateToken(ctx, jwtToken)
-	if err != nil {
-		return "", &createTokenError{
-			cause:  err,
-			reason: err.Error(),
-		}
-	}
-	c.token = token
-	c.expires = now.Add(expires.Sub(now) / 2)
-	return token, nil
 }
 
 func (c *client) expired() bool {
@@ -441,6 +460,7 @@ func (c *client) jwt(now time.Time) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("iam: could not sign jwt token: %w", err)
 	}
+
 	return s, nil
 }
 
@@ -451,7 +471,7 @@ func parsePrivateKey(raw []byte) (*rsa.PrivateKey, error) {
 	}
 	key, err := x509.ParsePKCS1PrivateKey(block.Bytes)
 	if err == nil {
-		return key, err
+		return key, nil
 	}
 
 	x, err := x509.ParsePKCS8PrivateKey(block.Bytes)
@@ -461,5 +481,6 @@ func parsePrivateKey(raw []byte) (*rsa.PrivateKey, error) {
 	if key, ok := x.(*rsa.PrivateKey); ok {
 		return key, nil
 	}
+
 	return nil, ErrKeyCannotBeParsed
 }

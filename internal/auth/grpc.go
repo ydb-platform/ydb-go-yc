@@ -19,12 +19,10 @@ type grpcTransport struct {
 	insecureSkipVerify bool // Accept any TLS certificate from server.
 }
 
-func (t *grpcTransport) CreateToken(ctx context.Context, jwt string) (
-	token string, expires time.Time, err error,
-) {
+func (t *grpcTransport) CreateToken(ctx context.Context, jwt string) (string, time.Time, error) {
 	conn, err := t.conn(ctx)
 	if err != nil {
-		return
+		return "", time.Time{}, err
 	}
 	defer func() {
 		_ = conn.Close()
@@ -36,14 +34,16 @@ func (t *grpcTransport) CreateToken(ctx context.Context, jwt string) (
 			Jwt: jwt,
 		},
 	})
-	if err == nil {
-		token = res.IamToken
-		expires = time.Unix(
-			res.ExpiresAt.Seconds,
-			int64(res.ExpiresAt.Nanos),
-		)
+	if err != nil {
+		return "", time.Time{}, err
 	}
-	return
+
+	expiresAt := res.GetExpiresAt()
+
+	return res.GetIamToken(), time.Unix(
+		expiresAt.GetSeconds(),
+		int64(expiresAt.GetNanos()),
+	), nil
 }
 
 func (t *grpcTransport) conn(ctx context.Context) (*grpc.ClientConn, error) {
@@ -69,5 +69,7 @@ func (t *grpcTransport) conn(ctx context.Context) (*grpc.ClientConn, error) {
 			),
 		}
 	}
+
+	//nolint:staticcheck,nolintlint // grpc.NewClient migration is out of scope for this change.
 	return grpc.DialContext(ctx, t.endpoint, opts...)
 }

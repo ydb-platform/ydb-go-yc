@@ -59,6 +59,7 @@ func TestGRPCCreateToken(t *testing.T) {
 
 type StubTokenService struct {
 	v1.UnimplementedIamTokenServiceServer
+
 	OnCreate                  func(context.Context, *v1.CreateIamTokenRequest) (*v1.CreateIamTokenResponse, error)
 	OnCreateForServiceAccount func(ctx context.Context, req *v1.CreateIamTokenForServiceAccountRequest) (
 		*v1.CreateIamTokenResponse, error)
@@ -69,7 +70,7 @@ func (s *StubTokenService) ListenAndServe() (
 	stop func() error,
 	err error,
 ) {
-	ln, err := net.Listen("tcp", "127.0.0.1:")
+	ln, err := (&net.ListenConfig{}).Listen(context.Background(), "tcp", "127.0.0.1:")
 	if err != nil {
 		return nil, nil, err
 	}
